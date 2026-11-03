@@ -496,3 +496,30 @@ ON CONFLICT DO NOTHING;
 This guarantees all monthly obligations are present as pending transactions the first time the app is accessed in a given month.
 
 **Note on `billing_day` capping:** `MAKE_DATE` raises an error if the day does not exist in the target month (e.g., day 31 in February). Instead of hardcoding a cap of 28, the query dynamically computes the last valid day of the current month using `DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day'` and uses that as the ceiling. This means a bill with `billing_day = 31` is generated on January 31, March 31, April 30, and February 28 (or 29 in a leap year) — always the closest valid date, never artificially early.
+
+## 7. Database Migrations
+
+Migrations are plain `.sql` files under `migrations/`. There is no migration tool — each file is executed manually in the **Supabase SQL Editor**.
+
+### 7.1 File structure
+
+```
+migrations/
+├── 001_create_users.sql
+├── 002_create_recurring_bills.sql
+├── 003_create_transactions.sql
+└── 004_create_indexes_and_triggers.sql
+```
+
+### 7.2 How to run a migration
+
+1. Open the Supabase dashboard → **SQL Editor** (left sidebar)
+2. Click **New query**
+3. Paste the contents of the `.sql` file
+4. Click **Run**
+
+### 7.3 Adding new tables in the future
+
+1. Create a new file under `migrations/` following the sequential numbering (e.g. `005_create_new_table.sql`)
+2. Write the `CREATE TABLE` with the required columns
+3. Run it in the SQL Editor as described in 7.2
