@@ -44,138 +44,47 @@ Because `api/auth` and `api/middleware` + `api/respond` from the toolkit cover t
 ### 2.1 Table: `users`
 Stores credentials for application access.
 
-id
-UUID
-PRIMARY KEY DEFAULT gen_random_uuid()
-Unique user identifier
-
-username
-VARCHAR(50)
-NOT NULL UNIQUE
-Login handle
-
-email
-VARCHAR(255)
-NOT NULL UNIQUE
-User email address
-
-password
-TEXT
-NOT NULL
-bcrypt hash of the user password
-
-created_at
-TIMESTAMPTZ
-NOT NULL DEFAULT NOW()
-Record creation timestamp
+| Column | Type | Constraint | Description |
+|---|---|---|---|
+| id | UUID | PRIMARY KEY DEFAULT gen_random_uuid() | Unique user identifier |
+| username | VARCHAR(50) | NOT NULL UNIQUE | Login handle |
+| email | VARCHAR(255) | NOT NULL UNIQUE | User email address |
+| password | TEXT | NOT NULL | bcrypt hash of the user password |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT NOW() | Record creation timestamp |
 
 Note: User registration is handled via the `POST /api/auth/user` endpoint.
 
 ### 2.2 Table: `recurring_bills`
 Defines recurring monthly bill templates ("blueprints").
 
-id
-UUID
-PRIMARY KEY DEFAULT gen_random_uuid()
-Unique template identifier
-
-user_id
-UUID
-NOT NULL REFERENCES users(id) ON DELETE CASCADE
-Owner identifier
-
-name
-VARCHAR(100)
-NOT NULL
-Description (e.g., "Internet", "Rent")
-
-default_amount
-NUMERIC(12,2)
-NOT NULL CHECK (default_amount >= 0)
-Expected default bill amount
-
-billing_day
-SMALLINT
-NOT NULL CHECK (billing_day BETWEEN 1 AND 31)
-Day of the month the bill is due
-
-category
-VARCHAR(50)
-NOT NULL DEFAULT 'outros'
-Expense category — must match a value from the shared category enum defined in the backend and frontend: 'mercado', 'restaurantes', 'moradia', 'transporte', 'lazer', 'outros'
-
-active
-BOOLEAN
-NOT NULL DEFAULT TRUE
-Whether to generate instances each month
-
-created_at
-TIMESTAMPTZ
-NOT NULL DEFAULT NOW()
-Record creation timestamp
-
-updated_at
-TIMESTAMPTZ
-NOT NULL DEFAULT NOW()
-Last update timestamp — should be refreshed on every UPDATE via a trigger or explicitly in the repository layer
+| Column | Type | Constraint | Description |
+|---|---|---|---|
+| id | UUID | PRIMARY KEY DEFAULT gen_random_uuid() | Unique template identifier |
+| user_id | UUID | NOT NULL REFERENCES users(id) ON DELETE CASCADE | Owner identifier |
+| name | VARCHAR(100) | NOT NULL | Description (e.g., "Internet", "Rent") |
+| default_amount | NUMERIC(12,2) | NOT NULL CHECK (default_amount >= 0) | Expected default bill amount |
+| billing_day | SMALLINT | NOT NULL CHECK (billing_day BETWEEN 1 AND 31) | Day of the month the bill is due |
+| category | VARCHAR(50) | NOT NULL DEFAULT 'outros' | Expense category — must match a value from the shared category enum: `'mercado'`, `'restaurantes'`, `'moradia'`, `'transporte'`, `'lazer'`, `'outros'` |
+| active | BOOLEAN | NOT NULL DEFAULT TRUE | Whether to generate instances each month |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT NOW() | Record creation timestamp |
+| updated_at | TIMESTAMPTZ | NOT NULL DEFAULT NOW() | Last update timestamp — refreshed on every UPDATE via trigger or explicitly in the repository layer |
 
 ### 2.3 Table: `transactions`
 Records actual ledger entries (both generated recurring bills and one-off variable expenses).
 
-id
-UUID
-PRIMARY KEY DEFAULT gen_random_uuid()
-Unique transaction identifier
-
-user_id
-UUID
-NOT NULL REFERENCES users(id) ON DELETE CASCADE
-Owner identifier
-
-recurring_bill_id
-UUID
-NULL REFERENCES recurring_bills(id) ON DELETE SET NULL
-Reference to recurring template; NULL for ad-hoc expenses
-
-description
-VARCHAR(150)
-NOT NULL
-Transaction description
-
-amount
-NUMERIC(12,2)
-NOT NULL CHECK (amount >= 0)
-Final transaction value
-
-category
-VARCHAR(50)
-NOT NULL DEFAULT 'outros'
-Category — same enum as recurring_bills: 'mercado', 'restaurantes', 'moradia', 'transporte', 'lazer', 'outros'
-
-due_date
-DATE
-NULL
-Due date; can be NULL for immediate one-off expenses
-
-status
-VARCHAR(20)
-NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid'))
-Current lifecycle state
-
-paid_at
-DATE
-NULL
-Date payment was executed; populated only when status = 'paid'
-
-created_at
-TIMESTAMPTZ
-NOT NULL DEFAULT NOW()
-Record creation timestamp
-
-updated_at
-TIMESTAMPTZ
-NOT NULL DEFAULT NOW()
-Last update timestamp — refreshed on every UPDATE
+| Column | Type | Constraint | Description |
+|---|---|---|---|
+| id | UUID | PRIMARY KEY DEFAULT gen_random_uuid() | Unique transaction identifier |
+| user_id | UUID | NOT NULL REFERENCES users(id) ON DELETE CASCADE | Owner identifier |
+| recurring_bill_id | UUID | NULL REFERENCES recurring_bills(id) ON DELETE SET NULL | Reference to recurring template; NULL for ad-hoc expenses |
+| description | VARCHAR(150) | NOT NULL | Transaction description |
+| amount | NUMERIC(12,2) | NOT NULL CHECK (amount >= 0) | Final transaction value |
+| category | VARCHAR(50) | NOT NULL DEFAULT 'outros' | Category — same enum as recurring_bills: `'mercado'`, `'restaurantes'`, `'moradia'`, `'transporte'`, `'lazer'`, `'outros'` |
+| due_date | DATE | NULL | Due date; can be NULL for immediate one-off expenses |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid')) | Current lifecycle state |
+| paid_at | DATE | NULL | Date payment was executed; populated only when status = 'paid' |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT NOW() | Record creation timestamp |
+| updated_at | TIMESTAMPTZ | NOT NULL DEFAULT NOW() | Last update timestamp — refreshed on every UPDATE |
 
 ### 2.4 Integrity & Deduplication Rules
 Monthly recurring deduplication: A unique compound index prevents generating duplicate transactions for the same recurring bill within the same calendar month:
