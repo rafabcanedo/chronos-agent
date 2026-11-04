@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	toolkitauth "github.com/rafabcanedo/obsidian-golang-toolkit/api/auth"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -41,7 +41,7 @@ func (s *Service) Login(ctx context.Context, username, password string) (string,
 		return "", errutil.Unauthorized("invalid credentials")
 	}
 
-	token, err := toolkitauth.Generate(s.jwtSecret, toolkitauth.Claims{
+	token, err := jwtauth.Generate(s.jwtSecret, jwtauth.Claims{
 		Subject: user.ID,
 		Expiry:  time.Now().Add(30 * 24 * time.Hour),
 	})

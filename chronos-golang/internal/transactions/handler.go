@@ -3,7 +3,7 @@ package transactions
 import (
 	"net/http"
 
-	toolkitauth "github.com/rafabcanedo/obsidian-golang-toolkit/api/auth"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/binding"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/respond"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
@@ -23,7 +23,7 @@ type listParams struct {
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
-	claims, ok := toolkitauth.GetClaims(r)
+	claims, ok := jwtauth.GetClaims(r)
 	if !ok {
 		respond.Error(w, errutil.Unauthorized("unauthorized"))
 		return
@@ -45,7 +45,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	claims, ok := toolkitauth.GetClaims(r)
+	claims, ok := jwtauth.GetClaims(r)
 	if !ok {
 		respond.Error(w, errutil.Unauthorized("unauthorized"))
 		return
@@ -69,7 +69,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	claims, ok := toolkitauth.GetClaims(r)
+	claims, ok := jwtauth.GetClaims(r)
 	if !ok {
 		respond.Error(w, errutil.Unauthorized("unauthorized"))
 		return
