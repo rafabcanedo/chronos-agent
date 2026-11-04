@@ -201,3 +201,59 @@ func (r *repository) delete(ctx context.Context, userID, id string) error {
 	}
 	return nil
 }
+
+func (r *repository) findAndMarkPaid(ctx context.Context, userID, description, date string) error {
+	result, err := r.db.Exec(ctx, `
+		UPDATE transactions
+		SET status = 'paid', paid_at = $3::date, updated_at = NOW()
+		WHERE id = (
+			SELECT id FROM transactions
+			WHERE user_id = $1
+			  AND status = 'pending'
+			  AND description ILIKE '%' || $2 || '%'
+			  AND DATE_TRUNC('month', due_date) = DATE_TRUNC('month', $3::date)
+			LIMIT 1
+		)
+	`, userID, description, date)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return errutil.NotFound("Conta não encontrada para este mês.")
+	}
+	return nil
+}
+
+func (r *repository) createExpense(ctx context.Context, userID, description, category, paidAt string, amount float64) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO transactions (user_id, description, amount, category, status, paid_at)
+		VALUES ($1, $2, $3, $4, 'paid', $5::date)
+	`, userID, description, amount, category, paidAt)
+	return err
+}
+
+func (r *repository) queryMonthly(ctx context.Context, userID, month string) (map[string]float64, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT category, SUM(amount)
+		FROM transactions
+		WHERE user_id = $1
+		  AND DATE_TRUNC('month', COALESCE(due_date, paid_at)) = DATE_TRUNC('month', $2::date)
+		GROUP BY category
+		ORDER BY SUM(amount) DESC
+	`, userID, month+"-01")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := map[string]float64{}
+	for rows.Next() {
+		var category string
+		var total float64
+		if err := rows.Scan(&category, &total); err != nil {
+			return nil, err
+		}
+		result[category] = total
+	}
+	return result, rows.Err()
+}

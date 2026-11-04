@@ -39,3 +39,19 @@ func (s *Service) Update(ctx context.Context, userID, id string, fields UpdateFi
 func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return s.repo.delete(ctx, userID, id)
 }
+
+func (s *Service) GenerateMonthly(ctx context.Context, userID string) error {
+	return s.repo.generateMonthly(ctx, userID)
+}
+
+func (s *Service) FindAndMarkPaid(ctx context.Context, userID, description, date string) error {
+	return s.repo.findAndMarkPaid(ctx, userID, description, date)
+}
+
+func (s *Service) CreateExpense(ctx context.Context, userID, description, category, paidAt string, amount float64) error {
+	return s.repo.createExpense(ctx, userID, description, category, paidAt, amount)
+}
+
+func (s *Service) QueryMonthly(ctx context.Context, userID, month string) (map[string]float64, error) {
+	return s.repo.queryMonthly(ctx, userID, month)
+}

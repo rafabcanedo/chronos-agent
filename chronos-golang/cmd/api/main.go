@@ -7,7 +7,9 @@ import (
 	"os"
 
 	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/auth"
+	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/chat"
 	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/database"
+	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/llm"
 	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/recurring"
 	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/transactions"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
@@ -29,6 +31,8 @@ func main() {
 	port        := env.GetString("PORT", "8080")
 	databaseURL := env.GetString("DATABASE_URL", "")
 	jwtSecret   := env.GetString("JWT_SECRET", "")
+	abacusKey   := env.GetString("ABACUS_API_KEY", "")
+	abacusModel := env.GetString("ABACUS_MODEL", "gpt-4o-mini")
 
 	logger := logutil.NewLogger(appEnv)
 
@@ -48,6 +52,13 @@ func main() {
 	txSvc     := transactions.NewService(db)
 	txHandler := transactions.NewHandler(txSvc)
 
+	recurringSvc    := recurring.NewService(db)
+	recurringHandler := recurring.NewHandler(recurringSvc)
+
+	llmClient  := llm.NewClient(abacusKey, abacusModel)
+	chatSvc    := chat.NewService(txSvc, recurringSvc, llmClient)
+	chatHandler := chat.NewHandler(chatSvc)
+
 	protected := jwtauth.Middleware(jwtSecret)
 
 	mux := http.NewServeMux()
@@ -56,8 +67,6 @@ func main() {
 	mux.HandleFunc("POST /api/auth/user",  authHandler.Register)
 	mux.HandleFunc("POST /api/auth/login", authHandler.Login)
 
-	recurringHandler := recurring.NewHandler(recurring.NewService(db))
-
 	mux.Handle("GET /api/transactions",         protected(http.HandlerFunc(txHandler.List)))
 	mux.Handle("PATCH /api/transactions/{id}",  protected(http.HandlerFunc(txHandler.Update)))
 	mux.Handle("DELETE /api/transactions/{id}", protected(http.HandlerFunc(txHandler.Delete)))
@@ -65,6 +74,8 @@ func main() {
 	mux.Handle("GET /api/recurring",      protected(http.HandlerFunc(recurringHandler.List)))
 	mux.Handle("POST /api/recurring",     protected(http.HandlerFunc(recurringHandler.Create)))
 	mux.Handle("PUT /api/recurring/{id}", protected(http.HandlerFunc(recurringHandler.Update)))
+
+	mux.Handle("POST /api/chat", protected(http.HandlerFunc(chatHandler.Handle)))
 
 	cors := middleware.CORS(middleware.CORSOptions{
 		AllowedOrigins: []string{"*"},
