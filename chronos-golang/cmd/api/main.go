@@ -8,6 +8,8 @@ import (
 
 	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/auth"
 	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/database"
+	"github.com/rafabcanedo/chronos-agent/chronos-golang/internal/transactions"
+	toolkitauth "github.com/rafabcanedo/obsidian-golang-toolkit/api/auth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/middleware"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/config"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/env"
@@ -42,11 +44,20 @@ func main() {
 	authSvc     := auth.NewService(db, jwtSecret)
 	authHandler := auth.NewHandler(authSvc)
 
+	txSvc     := transactions.NewService(db)
+	txHandler := transactions.NewHandler(txSvc)
+
+	protected := toolkitauth.Middleware(jwtSecret)
+
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /health", health.New().Handler())
 	mux.HandleFunc("POST /api/auth/user",  authHandler.Register)
 	mux.HandleFunc("POST /api/auth/login", authHandler.Login)
+
+	mux.Handle("GET /api/transactions",         protected(http.HandlerFunc(txHandler.List)))
+	mux.Handle("PATCH /api/transactions/{id}",  protected(http.HandlerFunc(txHandler.Update)))
+	mux.Handle("DELETE /api/transactions/{id}", protected(http.HandlerFunc(txHandler.Delete)))
 
 	cors := middleware.CORS(middleware.CORSOptions{
 		AllowedOrigins: []string{"*"},
