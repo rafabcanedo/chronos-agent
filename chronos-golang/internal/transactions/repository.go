@@ -12,6 +12,21 @@ import (
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 )
 
+const (
+	StatusPending = "pending"
+	StatusPaid    = "paid"
+	StatusOverdue = "overdue"
+)
+
+const (
+	CategoryMercado      = "mercado"
+	CategoryRestaurantes = "restaurantes"
+	CategoryMoradia      = "moradia"
+	CategoryTransporte   = "transporte"
+	CategoryLazer        = "lazer"
+	CategoryOutros       = "outros"
+)
+
 type Transaction struct {
 	ID              string  `json:"id"`
 	RecurringBillID *string `json:"recurring_bill_id"`
@@ -98,6 +113,17 @@ func (r *repository) generateMonthly(ctx context.Context, userID string) error {
 		FROM recurring_bills rb
 		WHERE rb.user_id = $1 AND rb.active = TRUE
 		ON CONFLICT DO NOTHING
+	`, userID)
+	return err
+}
+
+func (r *repository) markOverdue(ctx context.Context, userID string) error {
+	_, err := r.db.Exec(ctx, `
+		UPDATE transactions
+		SET status = 'overdue', updated_at = NOW()
+		WHERE user_id = $1
+		  AND status = 'pending'
+		  AND due_date < CURRENT_DATE
 	`, userID)
 	return err
 }
@@ -209,7 +235,7 @@ func (r *repository) findAndMarkPaid(ctx context.Context, userID, description, d
 		WHERE id = (
 			SELECT id FROM transactions
 			WHERE user_id = $1
-			  AND status = 'pending'
+			  AND status IN ('pending', 'overdue')
 			  AND description ILIKE '%' || $2 || '%'
 			  AND DATE_TRUNC('month', due_date) = DATE_TRUNC('month', $3::date)
 			LIMIT 1

@@ -24,6 +24,10 @@ func (s *Service) List(ctx context.Context, userID, month, status string) ([]Tra
 		return nil, err
 	}
 
+	if err := s.repo.markOverdue(ctx, userID); err != nil {
+		return nil, err
+	}
+
 	return s.repo.list(ctx, userID, month, status)
 }
 
