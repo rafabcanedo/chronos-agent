@@ -19,12 +19,12 @@ const (
 )
 
 const (
-	CategoryMercado      = "mercado"
-	CategoryRestaurantes = "restaurantes"
-	CategoryMoradia      = "moradia"
-	CategoryTransporte   = "transporte"
-	CategoryLazer        = "lazer"
-	CategoryOutros       = "outros"
+	CategoryMarket      = "market"
+	CategoryRestaurants = "restaurants"
+	CategoryHousing     = "housing"
+	CategoryTransport   = "transport"
+	CategoryLeisure     = "leisure"
+	CategoryOther       = "other"
 )
 
 type Transaction struct {

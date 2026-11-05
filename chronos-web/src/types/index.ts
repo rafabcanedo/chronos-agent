@@ -38,3 +38,11 @@ export interface ApiResponse<T> {
 export interface ApiError {
   error: string
 }
+
+export interface ITextInput {
+  name: string
+  type?: string
+  label?: string
+  title?: string
+  disabled?: boolean
+}

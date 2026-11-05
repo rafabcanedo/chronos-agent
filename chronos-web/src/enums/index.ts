@@ -1,10 +1,10 @@
 export const Category = {
-  Mercado: 'mercado',
-  Restaurantes: 'restaurantes',
-  Moradia: 'moradia',
-  Transporte: 'transporte',
-  Lazer: 'lazer',
-  Outros: 'outros',
+  Market: 'market',
+  Restaurants: 'restaurants',
+  Housing: 'housing',
+  Transport: 'transport',
+  Leisure: 'leisure',
+  Other: 'other',
 } as const
 
 export type Category = typeof Category[keyof typeof Category]
