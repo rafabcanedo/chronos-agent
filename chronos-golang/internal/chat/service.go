@@ -75,7 +75,7 @@ func (s *Service) handleCreateExpense(ctx context.Context, userID string, action
 		date = *action.Date
 	}
 
-	category := "outros"
+	category := "other"
 	if action.Category != nil {
 		category = *action.Category
 	}
@@ -95,7 +95,7 @@ func (s *Service) handleCreateRecurring(ctx context.Context, userID string, acti
 		return "", errutil.BadRequest("Não entendi o dia de vencimento.")
 	}
 
-	category := "outros"
+	category := "other"
 	if action.Category != nil {
 		category = *action.Category
 	}

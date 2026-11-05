@@ -4,7 +4,7 @@ CREATE TABLE transactions (
   recurring_bill_id UUID          REFERENCES recurring_bills(id) ON DELETE SET NULL,
   description       VARCHAR(150)  NOT NULL,
   amount            NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
-  category          VARCHAR(50)   NOT NULL DEFAULT 'outros',
+  category          VARCHAR(50)   NOT NULL DEFAULT 'other',
   due_date          DATE,
   status            VARCHAR(20)   NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid')),
   paid_at           DATE,
