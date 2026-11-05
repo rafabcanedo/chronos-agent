@@ -1,0 +1,44 @@
+import { useForm, FormProvider } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { HookFormTextInput } from '@/components/form/HookFormTextInput'
+import { HookFormPasswordInput } from '@/components/form/HookFormPasswordInput'
+import { Button } from '@/components/ui/button'
+
+const schema = z.object({
+  username: z.string().min(1, 'Usuário obrigatório'),
+  password: z.string().min(1, 'Senha obrigatória'),
+})
+
+type SignInFormData = z.infer<typeof schema>
+
+export function SignInForm() {
+  const methods = useForm<SignInFormData>({
+    resolver: zodResolver(schema),
+  })
+
+  const onSubmit = (data: SignInFormData) => {
+    console.log(data)
+  }
+
+  return (
+    <FormProvider {...methods}>
+      <form
+        onSubmit={methods.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 w-full max-w-sm"
+      >
+        <div className="flex flex-col gap-1 mb-2">
+          <h1 className="text-2xl font-heading font-semibold">Signin</h1>
+          <p className="text-sm text-muted-foreground">Enter in your Chronos account</p>
+        </div>
+
+        <HookFormTextInput name="username" title="Usuário" label="seu usuário" />
+        <HookFormPasswordInput name="password" title="Senha" label="sua senha" />
+
+        <Button type="submit" className="w-full mt-2">
+          Entrar
+        </Button>
+      </form>
+    </FormProvider>
+  )
+}
