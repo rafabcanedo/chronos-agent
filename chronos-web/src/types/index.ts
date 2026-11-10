@@ -46,3 +46,9 @@ export interface ITextInput {
   title?: string
   disabled?: boolean
 }
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+}

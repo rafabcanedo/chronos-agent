@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import About from './pages/about'
 import Chat from './pages/chat'
 import Dashboard from './pages/dashboard'
 import Home from './pages/home'
@@ -9,6 +10,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route index element={<Home />} />
+        <Route path="/about" element={<About />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/dashboard" element={<Dashboard />} />
