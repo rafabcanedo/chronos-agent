@@ -52,3 +52,11 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
+
+export interface BillCardProps {
+  bill: RecurringBill
+}
+
+export interface TransactionCardProps {
+  transaction: Transaction
+}
