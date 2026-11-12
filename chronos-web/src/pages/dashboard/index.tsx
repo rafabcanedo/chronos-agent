@@ -10,16 +10,23 @@ export default function Dashboard() {
       <DashboardNavbar />
       <main className="flex-1 flex flex-col gap-6 p-6">
         <StatusBar />
-        <div className="grid grid-cols-3 gap-3">
-          {mockRecurringBills.map(bill => (
-            <BillCard key={bill.id} bill={bill} />
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {mockTransactions.map(transaction => (
-            <TransactionCard key={transaction.id} transaction={transaction} />
-          ))}
-        </div>
+        <section className="flex flex-col gap-3 border rounded-lg p-4">
+          <h2 className="text-sm font-semibold">Recurring Bills</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {mockRecurringBills.map(bill => (
+              <BillCard key={bill.id} bill={bill} />
+            ))}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-3 border rounded-lg p-4">
+          <h2 className="text-sm font-semibold">Transactions</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {mockTransactions.map(transaction => (
+              <TransactionCard key={transaction.id} transaction={transaction} />
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   )

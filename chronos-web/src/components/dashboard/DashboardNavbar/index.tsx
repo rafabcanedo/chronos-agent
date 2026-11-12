@@ -6,6 +6,8 @@ import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
   NavigationMenuLink,
 } from '@/components/ui/navigation-menu'
 import {
@@ -25,13 +27,20 @@ export function DashboardNavbar() {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuLink render={<Link to="/chat" />}>Chat</NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink render={<Link to="/" />}>Home</NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink render={<Link to="/about" />}>About</NavigationMenuLink>
+              <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="w-40">
+                  <li>
+                    <NavigationMenuLink render={<Link to="/chat" />}>Chat</NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink render={<Link to="/" />}>Home</NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink render={<Link to="/about" />}>About</NavigationMenuLink>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
