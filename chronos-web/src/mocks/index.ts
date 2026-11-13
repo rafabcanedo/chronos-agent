@@ -8,6 +8,9 @@ export const mockRecurringBills: RecurringBill[] = [
   { id: '4', name: 'Spotify',  default_amount: 21.90,   billing_day: 20, category: Category.Leisure,     active: true, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
   { id: '5', name: 'Gym',      default_amount: 89.90,   billing_day: 1,  category: Category.Leisure,     active: true, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
   { id: '6', name: 'Água',     default_amount: 55.00,   billing_day: 25, category: Category.Housing,     active: true, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
+  { id: '7', name: 'Energia', default_amount: 180.00,  billing_day: 8,  category: Category.Housing,     active: true, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
+  { id: '8', name: 'Plano',   default_amount: 55.00,   billing_day: 12, category: Category.Other,       active: true, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
+  { id: '9', name: 'Prime',   default_amount: 19.90,   billing_day: 18, category: Category.Leisure,     active: true, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
 ]
 
 export const mockTransactions: Transaction[] = [
@@ -16,7 +19,10 @@ export const mockTransactions: Transaction[] = [
   { id: '3', recurring_bill_id: null, description: 'Almoço',        amount: 35.00,   category: Category.Restaurants, due_date: null,         status: TransactionStatus.Paid,    paid_at: '2026-11-08', created_at: '2026-11-08T00:00:00Z', updated_at: '2026-11-08T00:00:00Z' },
   { id: '4', recurring_bill_id: '3',  description: 'Netflix',       amount: 45.90,   category: Category.Leisure,     due_date: '2026-11-15', status: TransactionStatus.Pending,  paid_at: null,         created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
   { id: '5', recurring_bill_id: null, description: 'Supermercado',  amount: 280.00,  category: Category.Market,      due_date: null,         status: TransactionStatus.Paid,    paid_at: '2026-11-07', created_at: '2026-11-07T00:00:00Z', updated_at: '2026-11-07T00:00:00Z' },
-  { id: '6', recurring_bill_id: '5',  description: 'Gym',           amount: 89.90,   category: Category.Leisure,     due_date: '2026-11-01', status: TransactionStatus.Overdue,  paid_at: null,         created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
+  { id: '6', recurring_bill_id: '5',  description: 'Gym',           amount: 89.90,   category: Category.Leisure,     due_date: '2026-11-01', status: TransactionStatus.Overdue, paid_at: null,         created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' },
+  { id: '7', recurring_bill_id: null, description: 'Farmácia',     amount: 67.00,   category: Category.Other,       due_date: null,         status: TransactionStatus.Paid,    paid_at: '2026-11-09', created_at: '2026-11-09T00:00:00Z', updated_at: '2026-11-09T00:00:00Z' },
+  { id: '8', recurring_bill_id: null, description: 'Transporte',   amount: 44.00,   category: Category.Transport,   due_date: null,         status: TransactionStatus.Pending, paid_at: null,         created_at: '2026-11-10T00:00:00Z', updated_at: '2026-11-10T00:00:00Z' },
+  { id: '9', recurring_bill_id: null, description: 'Cinema',       amount: 28.00,   category: Category.Leisure,     due_date: null,         status: TransactionStatus.Paid,    paid_at: '2026-11-11', created_at: '2026-11-11T00:00:00Z', updated_at: '2026-11-11T00:00:00Z' },
 ]
 
 export const mockStatusSummary = {
