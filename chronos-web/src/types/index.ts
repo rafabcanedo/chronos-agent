@@ -68,3 +68,11 @@ export interface StatusBadgeProps {
 export interface TransactionDetailProps {
   transaction: Transaction
 }
+
+export interface ActiveBadgeProps {
+  active: boolean
+}
+
+export interface BillDetailProps {
+  bill: RecurringBill
+}
