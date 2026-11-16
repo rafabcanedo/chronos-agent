@@ -10,7 +10,7 @@ export function BillCard({ bill }: BillCardProps) {
         <p className="text-xs text-muted-foreground">{CATEGORY_LABELS[bill.category]}</p>
         <div className="flex items-center justify-between mt-2">
           <span className="text-sm font-semibold">R$ {bill.default_amount.toFixed(2)}</span>
-          <span className="text-xs text-muted-foreground">Day {bill.billing_day}</span>
+          <span className="text-xs text-muted-foreground">{String(bill.billing_day).padStart(2, '0')}/xx</span>
         </div>
       </CardContent>
     </Card>
