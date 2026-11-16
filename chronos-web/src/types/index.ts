@@ -60,3 +60,11 @@ export interface BillCardProps {
 export interface TransactionCardProps {
   transaction: Transaction
 }
+
+export interface StatusBadgeProps {
+  status: TransactionStatus
+}
+
+export interface TransactionDetailProps {
+  transaction: Transaction
+}
