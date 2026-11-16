@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import type { ITextInput } from '@/types'
 
-export const HookFormPasswordInput: FC<Omit<ITextInput, 'type'>> = ({
+export const PasswordInput: FC<Omit<ITextInput, 'type'>> = ({
   name,
   label,
   title,

@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
-export function DashboardNavbar() {
+export function Navbar() {
   return (
     <header className="flex h-14 items-center justify-between border-b border-border px-6">
       <img src={logo} alt="Chronos" className="h-7 select-none" draggable={false} />

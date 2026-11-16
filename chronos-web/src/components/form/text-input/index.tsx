@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import type { ITextInput } from '@/types'
 
-export const HookFormTextInput: FC<ITextInput> = ({
+export const TextInput: FC<ITextInput> = ({
   name,
   type = 'text',
   label,

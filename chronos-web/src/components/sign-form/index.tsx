@@ -1,8 +1,8 @@
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { HookFormTextInput } from '@/components/form/HookFormTextInput'
-import { HookFormPasswordInput } from '@/components/form/HookFormPasswordInput'
+import { TextInput } from '@/components/form/text-input'
+import { PasswordInput } from '@/components/form/password-input'
 import { Button } from '@/components/ui/button'
 
 const schema = z.object({
@@ -32,8 +32,8 @@ export function SignInForm() {
           <p className="text-sm text-muted-foreground">Signin to your Chronos account</p>
         </div>
 
-        <HookFormTextInput name="username" title="Username" label="Your username" />
-        <HookFormPasswordInput name="password" title="Password" label="Your password" />
+        <TextInput name="username" title="Username" label="Your username" />
+        <PasswordInput name="password" title="Password" label="Your password" />
 
         <Button type="submit" className="w-full mt-2">
           Login

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { ArrowUpIcon } from 'lucide-react'
 import { useChatHistory } from '@/hooks/useChatHistory'
-import { ChatEmptyState } from '@/components/chronos/ChatEmptyState'
+import { ChatEmptyState } from '@/components/chronos/chat-empty-state'
 import { Card, CardContent } from '@/components/ui/card'
 import { Bubble, BubbleContent } from '@/components/ui/bubble'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from '@/components/ui/input-group'

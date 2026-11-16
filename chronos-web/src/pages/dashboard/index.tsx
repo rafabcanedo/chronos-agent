@@ -1,14 +1,14 @@
 import { Link } from 'react-router'
 import { mockRecurringBills, mockTransactions } from '@/mocks'
-import { DashboardNavbar } from '@/components/dashboard/DashboardNavbar'
-import { StatusBar } from '@/components/dashboard/StatusBar'
-import { BillCard } from '@/components/dashboard/BillCard'
-import { TransactionCard } from '@/components/dashboard/TransactionCard'
+import { Navbar } from '@/components/dashboard/navbar'
+import { StatusBar } from '@/components/dashboard/status-bar'
+import { BillCard } from '@/components/dashboard/bill-card'
+import { TransactionCard } from '@/components/dashboard/transaction-card'
 
 export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col">
-      <DashboardNavbar />
+      <Navbar />
       <main className="flex-1 flex flex-col gap-6 p-6">
         <StatusBar />
         <section className="flex flex-col gap-3 border rounded-lg p-4">
