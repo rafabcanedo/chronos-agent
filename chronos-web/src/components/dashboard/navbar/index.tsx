@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { ChevronDownIcon, PlusIcon, UserIcon } from 'lucide-react'
 import logo from '@/assets/logo-chronos.png'
 import { Button } from '@/components/ui/button'
+import { BillFormDialog } from '@/components/recurring/bill-form-dialog'
+import { TransactionFormDialog } from '@/components/transactions/transaction-form-dialog'
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -19,7 +22,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export function Navbar() {
+  const [billFormOpen, setBillFormOpen] = useState(false)
+  const [transactionFormOpen, setTransactionFormOpen] = useState(false)
+
   return (
+    <>
     <header className="flex h-14 items-center justify-between border-b border-border px-6">
       <Link to="/dashboard">
         <img src={logo} alt="Chronos" className="h-7 select-none" draggable={false} />
@@ -52,13 +59,16 @@ export function Navbar() {
             Actions <ChevronDownIcon />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem><PlusIcon /> Create transaction</DropdownMenuItem>
-            <DropdownMenuItem><PlusIcon /> Create bill</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTransactionFormOpen(true)}><PlusIcon /> Create transaction</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setBillFormOpen(true)}><PlusIcon /> Create bill</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem><UserIcon /> View profile</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>
+    <TransactionFormDialog open={transactionFormOpen} onOpenChange={setTransactionFormOpen} />
+    <BillFormDialog open={billFormOpen} onOpenChange={setBillFormOpen} />
+    </>
   )
 }

@@ -83,3 +83,13 @@ export interface DetailDrawerProps {
   title: string
   children: React.ReactNode
 }
+
+export interface BillFormDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export interface TransactionFormDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
