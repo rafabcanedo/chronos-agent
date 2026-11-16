@@ -76,3 +76,10 @@ export interface ActiveBadgeProps {
 export interface BillDetailProps {
   bill: RecurringBill
 }
+
+export interface DetailDrawerProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  children: React.ReactNode
+}
