@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 )
 
 type Service struct {
@@ -14,12 +15,12 @@ func NewService(db *pgxpool.Pool) *Service {
 	return &Service{repo: newRepository(db)}
 }
 
-func (s *Service) List(ctx context.Context, userID, active string) ([]RecurringBill, error) {
+func (s *Service) List(ctx context.Context, userID, active string, p pagination.Params) ([]RecurringBill, int, error) {
 	a := true
 	if active == "false" {
 		a = false
 	}
-	return s.repo.list(ctx, userID, a)
+	return s.repo.list(ctx, userID, a, p)
 }
 
 func (s *Service) Create(ctx context.Context, userID, name, category string, defaultAmount float64, billingDay int) (RecurringBill, error) {

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 )
 
 type Service struct {
@@ -15,20 +16,20 @@ func NewService(db *pgxpool.Pool) *Service {
 	return &Service{repo: newRepository(db)}
 }
 
-func (s *Service) List(ctx context.Context, userID, month, status string) ([]Transaction, error) {
+func (s *Service) List(ctx context.Context, userID, month, status string, p pagination.Params) ([]Transaction, int, error) {
 	if month == "" {
 		month = time.Now().Format("2006-01")
 	}
 
 	if err := s.repo.generateMonthly(ctx, userID); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if err := s.repo.markOverdue(ctx, userID); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return s.repo.list(ctx, userID, month, status)
+	return s.repo.list(ctx, userID, month, status, p)
 }
 
 func (s *Service) Update(ctx context.Context, userID, id string, fields UpdateFields) (*Transaction, error) {

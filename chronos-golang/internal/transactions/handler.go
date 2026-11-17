@@ -3,9 +3,10 @@ package transactions
 import (
 	"net/http"
 
-	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/binding"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/respond"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 )
 
@@ -18,8 +19,10 @@ func NewHandler(svc *Service) *Handler {
 }
 
 type listParams struct {
-	Month  string `form:"month"`
-	Status string `form:"status"`
+	Month    string `form:"month"`
+	Status   string `form:"status"`
+	Page     int    `form:"page"`
+	PageSize int    `form:"page_size"`
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
@@ -35,13 +38,15 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	txs, err := h.svc.List(r.Context(), claims.Subject, params.Month, params.Status)
+	p := pagination.New(params.Page, params.PageSize)
+
+	txs, total, err := h.svc.List(r.Context(), claims.Subject, params.Month, params.Status, p)
 	if err != nil {
 		respond.Error(w, err)
 		return
 	}
 
-	respond.OK(w, txs)
+	respond.Paginated(w, txs, p.NewMeta(total))
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {

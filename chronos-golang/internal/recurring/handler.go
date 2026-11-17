@@ -6,6 +6,7 @@ import (
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/binding"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/respond"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/validator"
 )
@@ -19,7 +20,9 @@ func NewHandler(svc *Service) *Handler {
 }
 
 type listParams struct {
-	Active string `form:"active"`
+	Active   string `form:"active"`
+	Page     int    `form:"page"`
+	PageSize int    `form:"page_size"`
 }
 
 type createRequest struct {
@@ -42,13 +45,15 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bills, err := h.svc.List(r.Context(), claims.Subject, params.Active)
+	p := pagination.New(params.Page, params.PageSize)
+
+	bills, total, err := h.svc.List(r.Context(), claims.Subject, params.Active, p)
 	if err != nil {
 		respond.Error(w, err)
 		return
 	}
 
-	respond.OK(w, bills)
+	respond.Paginated(w, bills, p.NewMeta(total))
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {

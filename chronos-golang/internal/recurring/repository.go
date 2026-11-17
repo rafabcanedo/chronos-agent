@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 )
 
@@ -61,15 +62,26 @@ func scanRecurringBill(s scanner) (RecurringBill, error) {
 	return rb, nil
 }
 
-func (r *repository) list(ctx context.Context, userID string, active bool) ([]RecurringBill, error) {
+func (r *repository) list(ctx context.Context, userID string, active bool, p pagination.Params) ([]RecurringBill, int, error) {
+	var total int
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM recurring_bills
+		WHERE user_id = $1 AND active = $2
+	`, userID, active).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	rows, err := r.db.Query(ctx, `
 		SELECT id, name, default_amount, billing_day, category, active, created_at, updated_at
 		FROM recurring_bills
 		WHERE user_id = $1 AND active = $2
 		ORDER BY name ASC
-	`, userID, active)
+		LIMIT $3 OFFSET $4
+	`, userID, active, p.PageSize, p.Offset())
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -77,11 +89,11 @@ func (r *repository) list(ctx context.Context, userID string, active bool) ([]Re
 	for rows.Next() {
 		rb, err := scanRecurringBill(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		bills = append(bills, rb)
 	}
-	return bills, rows.Err()
+	return bills, total, rows.Err()
 }
 
 func (r *repository) create(ctx context.Context, userID, name, category string, defaultAmount float64, billingDay int) (RecurringBill, error) {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 )
 
@@ -128,7 +129,19 @@ func (r *repository) markOverdue(ctx context.Context, userID string) error {
 	return err
 }
 
-func (r *repository) list(ctx context.Context, userID, month, status string) ([]Transaction, error) {
+func (r *repository) list(ctx context.Context, userID, month, status string, p pagination.Params) ([]Transaction, int, error) {
+	var total int
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM transactions
+		WHERE user_id = $1
+		  AND DATE_TRUNC('month', COALESCE(due_date, paid_at)) = DATE_TRUNC('month', $2::date)
+		  AND ($3 = '' OR status = $3)
+	`, userID, month+"-01", status).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	rows, err := r.db.Query(ctx, `
 		SELECT id, recurring_bill_id, description, amount, category,
 		       due_date, status, paid_at, created_at, updated_at
@@ -137,9 +150,10 @@ func (r *repository) list(ctx context.Context, userID, month, status string) ([]
 		  AND DATE_TRUNC('month', COALESCE(due_date, paid_at)) = DATE_TRUNC('month', $2::date)
 		  AND ($3 = '' OR status = $3)
 		ORDER BY due_date ASC NULLS LAST
-	`, userID, month+"-01", status)
+		LIMIT $4 OFFSET $5
+	`, userID, month+"-01", status, p.PageSize, p.Offset())
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -147,11 +161,11 @@ func (r *repository) list(ctx context.Context, userID, month, status string) ([]
 	for rows.Next() {
 		t, err := scanTransaction(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		txs = append(txs, t)
 	}
-	return txs, rows.Err()
+	return txs, total, rows.Err()
 }
 
 func (r *repository) update(ctx context.Context, userID, id string, fields UpdateFields) (*Transaction, error) {
