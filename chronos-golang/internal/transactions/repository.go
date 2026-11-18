@@ -149,7 +149,7 @@ func (r *repository) markOverdue(ctx context.Context, userID string) error {
 	return err
 }
 
-func (r *repository) list(ctx context.Context, userID, month, status string, p pagination.Params) ([]Transaction, int, error) {
+func (r *repository) list(ctx context.Context, userID, month, status, category string, p pagination.Params) ([]Transaction, int, error) {
 	var total int
 	err := r.db.QueryRow(ctx, `
 		SELECT COUNT(*)
@@ -157,7 +157,8 @@ func (r *repository) list(ctx context.Context, userID, month, status string, p p
 		WHERE user_id = $1
 		  AND DATE_TRUNC('month', COALESCE(due_date, paid_at)) = DATE_TRUNC('month', $2::date)
 		  AND ($3 = '' OR status = $3)
-	`, userID, month+"-01", status).Scan(&total)
+		  AND ($4 = '' OR category = $4)
+	`, userID, month+"-01", status, category).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -169,9 +170,10 @@ func (r *repository) list(ctx context.Context, userID, month, status string, p p
 		WHERE user_id = $1
 		  AND DATE_TRUNC('month', COALESCE(due_date, paid_at)) = DATE_TRUNC('month', $2::date)
 		  AND ($3 = '' OR status = $3)
+		  AND ($4 = '' OR category = $4)
 		ORDER BY due_date ASC NULLS LAST
-		LIMIT $4 OFFSET $5
-	`, userID, month+"-01", status, p.PageSize, p.Offset())
+		LIMIT $5 OFFSET $6
+	`, userID, month+"-01", status, category, p.PageSize, p.Offset())
 	if err != nil {
 		return nil, 0, err
 	}

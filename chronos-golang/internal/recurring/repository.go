@@ -62,13 +62,16 @@ func scanRecurringBill(s scanner) (RecurringBill, error) {
 	return rb, nil
 }
 
-func (r *repository) list(ctx context.Context, userID string, active bool, p pagination.Params) ([]RecurringBill, int, error) {
+func (r *repository) list(ctx context.Context, userID string, active *bool, category, name string, p pagination.Params) ([]RecurringBill, int, error) {
 	var total int
 	err := r.db.QueryRow(ctx, `
 		SELECT COUNT(*)
 		FROM recurring_bills
-		WHERE user_id = $1 AND active = $2
-	`, userID, active).Scan(&total)
+		WHERE user_id = $1
+		  AND ($2::boolean IS NULL OR active = $2)
+		  AND ($3 = '' OR category = $3)
+		  AND ($4 = '' OR name ILIKE '%' || $4 || '%')
+	`, userID, active, category, name).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -76,10 +79,13 @@ func (r *repository) list(ctx context.Context, userID string, active bool, p pag
 	rows, err := r.db.Query(ctx, `
 		SELECT id, name, default_amount, billing_day, category, active, created_at, updated_at
 		FROM recurring_bills
-		WHERE user_id = $1 AND active = $2
+		WHERE user_id = $1
+		  AND ($2::boolean IS NULL OR active = $2)
+		  AND ($3 = '' OR category = $3)
+		  AND ($4 = '' OR name ILIKE '%' || $4 || '%')
 		ORDER BY name ASC
-		LIMIT $3 OFFSET $4
-	`, userID, active, p.PageSize, p.Offset())
+		LIMIT $5 OFFSET $6
+	`, userID, active, category, name, p.PageSize, p.Offset())
 	if err != nil {
 		return nil, 0, err
 	}

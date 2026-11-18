@@ -21,6 +21,8 @@ func NewHandler(svc *Service) *Handler {
 
 type listParams struct {
 	Active   string `form:"active"`
+	Category string `form:"category"`
+	Name     string `form:"name"`
 	Page     int    `form:"page"`
 	PageSize int    `form:"page_size"`
 }
@@ -47,7 +49,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 
 	p := pagination.New(params.Page, params.PageSize)
 
-	bills, total, err := h.svc.List(r.Context(), claims.Subject, params.Active, p)
+	bills, total, err := h.svc.List(r.Context(), claims.Subject, params.Active, params.Category, params.Name, p)
 	if err != nil {
 		respond.Error(w, err)
 		return

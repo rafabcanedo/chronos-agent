@@ -27,7 +27,7 @@ func (s *Service) Create(ctx context.Context, userID, description, category stri
 	return s.repo.create(ctx, userID, description, category, amount, dueDate, paidAt, status)
 }
 
-func (s *Service) List(ctx context.Context, userID, month, status string, p pagination.Params) ([]Transaction, int, error) {
+func (s *Service) List(ctx context.Context, userID, month, status, category string, p pagination.Params) ([]Transaction, int, error) {
 	if month == "" {
 		month = time.Now().Format("2006-01")
 	}
@@ -40,7 +40,7 @@ func (s *Service) List(ctx context.Context, userID, month, status string, p pagi
 		return nil, 0, err
 	}
 
-	return s.repo.list(ctx, userID, month, status, p)
+	return s.repo.list(ctx, userID, month, status, category, p)
 }
 
 func (s *Service) Update(ctx context.Context, userID, id string, fields UpdateFields) (*Transaction, error) {

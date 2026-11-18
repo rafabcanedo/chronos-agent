@@ -249,9 +249,9 @@ Sempre retorna os três status mesmo que não haja transações (count e total z
 
 ---
 
-**`GET /api/transactions?month=YYYY-MM&status=pending|paid`**
+**`GET /api/transactions?month=YYYY-MM&status=pending|paid|overdue&category=string&page=1&page_size=10`**
 
-Fetches user transactions filtered by calendar month and/or payment state. `month` defaults to current month if omitted.
+Fetches user transactions filtered by calendar month, payment state and/or category. `month` defaults to current month if omitted. Omitting `status` or `category` returns all values.
 
 **Month filter logic:** Recurring transactions have a `due_date` and ad-hoc expenses have `due_date = NULL` but always have `paid_at` set. To include both types in a monthly query, the repository must filter using `COALESCE(due_date, paid_at)`:
 
@@ -337,9 +337,9 @@ Permanently removes a transaction record.
 
 ### 4.3 Recurring Bills (Templates)
 
-**`GET /api/recurring?active=true|false`**
+**`GET /api/recurring?active=true|false|all&category=string&name=string&page=1&page_size=10`**
 
-Lists recurring bill templates. Defaults to `active=true`. Pass `active=false` to list inactive bills.
+Lists recurring bill templates. Omitting `active` or passing `active=all` returns all bills regardless of status. Pass `active=false` to list only inactive bills. `category` and `name` are optional — `name` performs a case-insensitive contains search.
 
 ```json
 // response 200

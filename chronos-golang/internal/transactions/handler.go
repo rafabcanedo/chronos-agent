@@ -31,6 +31,7 @@ type createRequest struct {
 type listParams struct {
 	Month    string `form:"month"`
 	Status   string `form:"status"`
+	Category string `form:"category"`
 	Page     int    `form:"page"`
 	PageSize int    `form:"page_size"`
 }
@@ -108,7 +109,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 
 	p := pagination.New(params.Page, params.PageSize)
 
-	txs, total, err := h.svc.List(r.Context(), claims.Subject, params.Month, params.Status, p)
+	txs, total, err := h.svc.List(r.Context(), claims.Subject, params.Month, params.Status, params.Category, p)
 	if err != nil {
 		respond.Error(w, err)
 		return
