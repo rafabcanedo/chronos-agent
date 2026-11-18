@@ -105,7 +105,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.OK(w, map[string]any{"message": "Conta recorrente removida com sucesso."})
+	respond.OK(w, map[string]any{"message": "Recurring bill deleted successfully."})
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {

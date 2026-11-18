@@ -35,7 +35,7 @@ func (s *Service) Handle(ctx context.Context, userID, message string) (string, e
 
 	action, err := s.llm.Parse(ctx, message, today)
 	if err != nil {
-		return "", errutil.BadRequest("Não entendi o que você quis dizer.")
+		return "", errutil.BadRequest("Could not understand your request.")
 	}
 
 	switch action.Action {
@@ -48,7 +48,7 @@ func (s *Service) Handle(ctx context.Context, userID, message string) (string, e
 	case "query":
 		return s.handleQuery(ctx, userID, action, today)
 	default:
-		return "", errutil.BadRequest("Não entendi o que você quis dizer.")
+		return "", errutil.BadRequest("Could not understand your request.")
 	}
 }
 
@@ -67,7 +67,7 @@ func (s *Service) handlePay(ctx context.Context, userID string, action llm.Actio
 
 func (s *Service) handleCreateExpense(ctx context.Context, userID string, action llm.Action, today string) (string, error) {
 	if action.Amount == nil {
-		return "", errutil.BadRequest("Não entendi o valor da despesa.")
+		return "", errutil.BadRequest("Could not understand the expense amount.")
 	}
 
 	date := today
@@ -89,10 +89,10 @@ func (s *Service) handleCreateExpense(ctx context.Context, userID string, action
 
 func (s *Service) handleCreateRecurring(ctx context.Context, userID string, action llm.Action) (string, error) {
 	if action.Amount == nil {
-		return "", errutil.BadRequest("Não entendi o valor da conta recorrente.")
+		return "", errutil.BadRequest("Could not understand the recurring bill amount.")
 	}
 	if action.BillingDay == nil {
-		return "", errutil.BadRequest("Não entendi o dia de vencimento.")
+		return "", errutil.BadRequest("Could not understand the billing day.")
 	}
 
 	category := "other"

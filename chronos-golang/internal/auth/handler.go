@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/binding"
+	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/respond"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/validator"
@@ -59,6 +60,48 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		"email":      user.Email,
 		"created_at": user.CreatedAt,
 	})
+}
+
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	claims, ok := jwtauth.GetClaims(r)
+	if !ok {
+		respond.Error(w, errutil.Unauthorized("unauthorized"))
+		return
+	}
+
+	var fields UpdateFields
+	if err := binding.JSON(r, &fields); err != nil {
+		respond.Error(w, errutil.BadRequest(err.Error()))
+		return
+	}
+
+	user, err := h.svc.Update(r.Context(), claims.Subject, fields)
+	if err != nil {
+		respond.Error(w, err)
+		return
+	}
+
+	respond.OK(w, map[string]any{
+		"id":         user.ID,
+		"username":   user.Username,
+		"email":      user.Email,
+		"created_at": user.CreatedAt,
+	})
+}
+
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	claims, ok := jwtauth.GetClaims(r)
+	if !ok {
+		respond.Error(w, errutil.Unauthorized("unauthorized"))
+		return
+	}
+
+	if err := h.svc.Delete(r.Context(), claims.Subject); err != nil {
+		respond.Error(w, err)
+		return
+	}
+
+	respond.OK(w, map[string]any{"message": "User deleted successfully."})
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {

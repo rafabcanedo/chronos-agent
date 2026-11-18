@@ -281,7 +281,7 @@ func (r *repository) findAndMarkPaid(ctx context.Context, userID, description, d
 		return err
 	}
 	if result.RowsAffected() == 0 {
-		return errutil.NotFound("Conta não encontrada para este mês.")
+		return errutil.NotFound("Bill not found for this month.")
 	}
 	return nil
 }

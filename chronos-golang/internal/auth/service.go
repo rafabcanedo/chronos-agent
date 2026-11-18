@@ -31,6 +31,22 @@ func (s *Service) Register(ctx context.Context, username, email, password string
 	return s.repo.create(ctx, username, email, string(hash))
 }
 
+func (s *Service) Update(ctx context.Context, userID string, fields UpdateFields) (*User, error) {
+	if fields.Password != nil {
+		hash, err := bcrypt.GenerateFromPassword([]byte(*fields.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		hashed := string(hash)
+		fields.Password = &hashed
+	}
+	return s.repo.update(ctx, userID, fields)
+}
+
+func (s *Service) Delete(ctx context.Context, userID string) error {
+	return s.repo.delete(ctx, userID)
+}
+
 func (s *Service) Login(ctx context.Context, username, password string) (string, error) {
 	user, err := s.repo.findByUsername(ctx, username)
 	if err != nil {

@@ -156,5 +156,5 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond.OK(w, map[string]any{"message": "Transação removida com sucesso."})
+	respond.OK(w, map[string]any{"message": "Transaction deleted successfully."})
 }
