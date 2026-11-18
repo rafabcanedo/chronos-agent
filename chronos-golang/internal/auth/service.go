@@ -10,6 +10,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Servicer interface {
+	Register(ctx context.Context, username, email, password string) (*User, error)
+	Login(ctx context.Context, username, password string) (string, error)
+	Update(ctx context.Context, userID string, fields UpdateFields) (*User, error)
+	Delete(ctx context.Context, userID string) error
+}
+
 type Service struct {
 	repo      *repository
 	jwtSecret string

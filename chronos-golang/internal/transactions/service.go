@@ -8,6 +8,14 @@ import (
 	"github.com/rafabcanedo/obsidian-golang-toolkit/pagination"
 )
 
+type Servicer interface {
+	Create(ctx context.Context, userID, description, category string, amount float64, dueDate, paidAt *string, status string) (*Transaction, error)
+	List(ctx context.Context, userID, month, status, category string, p pagination.Params) ([]Transaction, int, error)
+	Summary(ctx context.Context, userID, month string) (map[string]StatusSummary, error)
+	Update(ctx context.Context, userID, id string, fields UpdateFields) (*Transaction, error)
+	Delete(ctx context.Context, userID, id string) error
+}
+
 type Service struct {
 	repo *repository
 }
