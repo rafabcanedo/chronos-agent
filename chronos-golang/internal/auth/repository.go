@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
@@ -31,9 +32,11 @@ func (r *repository) create(ctx context.Context, username, email, hashedPassword
 	`, username, email, hashedPassword)
 
 	var u User
-	if err := row.Scan(&u.ID, &u.Username, &u.Email, &u.CreatedAt); err != nil {
+	var createdAt time.Time
+	if err := row.Scan(&u.ID, &u.Username, &u.Email, &createdAt); err != nil {
 		return nil, err
 	}
+	u.CreatedAt = createdAt.Format(time.RFC3339)
 	return &u, nil
 }
 
@@ -45,8 +48,10 @@ func (r *repository) findByUsername(ctx context.Context, username string) (*User
 	`, username)
 
 	var u User
-	if err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt); err != nil {
+	var createdAt time.Time
+	if err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &createdAt); err != nil {
 		return nil, errutil.NotFound("user not found")
 	}
+	u.CreatedAt = createdAt.Format(time.RFC3339)
 	return &u, nil
 }
