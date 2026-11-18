@@ -16,6 +16,17 @@ func NewService(db *pgxpool.Pool) *Service {
 	return &Service{repo: newRepository(db)}
 }
 
+func (s *Service) Create(ctx context.Context, userID, description, category string, amount float64, dueDate, paidAt *string, status string) (*Transaction, error) {
+	if status == "" {
+		status = StatusPending
+	}
+	if status == StatusPaid && paidAt == nil {
+		today := time.Now().Format("2006-01-02")
+		paidAt = &today
+	}
+	return s.repo.create(ctx, userID, description, category, amount, dueDate, paidAt, status)
+}
+
 func (s *Service) List(ctx context.Context, userID, month, status string, p pagination.Params) ([]Transaction, int, error) {
 	if month == "" {
 		month = time.Now().Format("2006-01")
@@ -55,6 +66,22 @@ func (s *Service) FindAndMarkPaid(ctx context.Context, userID, description, date
 
 func (s *Service) CreateExpense(ctx context.Context, userID, description, category, paidAt string, amount float64) error {
 	return s.repo.createExpense(ctx, userID, description, category, paidAt, amount)
+}
+
+func (s *Service) Summary(ctx context.Context, userID, month string) (map[string]StatusSummary, error) {
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+
+	if err := s.repo.generateMonthly(ctx, userID); err != nil {
+		return nil, err
+	}
+
+	if err := s.repo.markOverdue(ctx, userID); err != nil {
+		return nil, err
+	}
+
+	return s.repo.summary(ctx, userID, month)
 }
 
 func (s *Service) QueryMonthly(ctx context.Context, userID, month string) (map[string]float64, error) {

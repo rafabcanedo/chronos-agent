@@ -30,3 +30,7 @@ func (s *Service) Create(ctx context.Context, userID, name, category string, def
 func (s *Service) Update(ctx context.Context, userID, id string, fields UpdateFields) (*RecurringBill, error) {
 	return s.repo.update(ctx, userID, id, fields)
 }
+
+func (s *Service) Delete(ctx context.Context, userID, id string) error {
+	return s.repo.delete(ctx, userID, id)
+}

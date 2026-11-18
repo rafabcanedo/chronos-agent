@@ -191,6 +191,64 @@ Token expiry: 30 days. Contains `user_id` in claims.
 
 ### 4.2 Transactions
 
+**`POST /api/transactions`**
+
+Cria uma transação avulsa manualmente (sem passar pelo chat).
+
+```json
+// request
+{
+  "description": "string",
+  "amount": 0.00,
+  "category": "string",
+  "due_date": "YYYY-MM-DD | null",
+  "status": "pending | paid | null",
+  "paid_at": "YYYY-MM-DD | null"
+}
+
+// response 201
+{
+  "data": {
+    "id": "uuid",
+    "recurring_bill_id": null,
+    "description": "string",
+    "amount": 0.00,
+    "category": "string",
+    "due_date": "YYYY-MM-DD | null",
+    "status": "pending | paid",
+    "paid_at": "YYYY-MM-DD | null",
+    "created_at": "timestamp",
+    "updated_at": "timestamp"
+  }
+}
+
+// response 400
+{ "error": "validation error message" }
+```
+
+`status` é opcional — padrão `pending`. Se `status = "paid"` e `paid_at` não for enviado, o backend preenche com a data de hoje.
+
+---
+
+**`GET /api/transactions/summary?month=YYYY-MM`**
+
+Retorna totais agregados por status para o mês. `month` padrão é o mês atual. Executa geração lazy e marcação de overdue antes de agregar.
+
+```json
+// response 200
+{
+  "data": {
+    "pending": { "count": 2, "total": 133.90 },
+    "paid":    { "count": 5, "total": 530.00 },
+    "overdue": { "count": 2, "total": 1289.90 }
+  }
+}
+```
+
+Sempre retorna os três status mesmo que não haja transações (count e total zerados).
+
+---
+
 **`GET /api/transactions?month=YYYY-MM&status=pending|paid`**
 
 Fetches user transactions filtered by calendar month and/or payment state. `month` defaults to current month if omitted.
@@ -332,6 +390,20 @@ Creates a new recurring bill template.
 
 // response 400
 { "error": "validation error message" }
+```
+
+---
+
+**`DELETE /api/recurring/:id`**
+
+Remove permanentemente uma conta recorrente. Transações já geradas a partir dela não são afetadas (a FK é `ON DELETE SET NULL`).
+
+```json
+// response 200
+{ "data": { "message": "Conta recorrente removida com sucesso." } }
+
+// response 404
+{ "error": "recurring bill not found" }
 ```
 
 ---

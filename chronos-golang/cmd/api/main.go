@@ -67,13 +67,16 @@ func main() {
 	mux.HandleFunc("POST /api/auth/user",  authHandler.Register)
 	mux.HandleFunc("POST /api/auth/login", authHandler.Login)
 
-	mux.Handle("GET /api/transactions",         protected(http.HandlerFunc(txHandler.List)))
-	mux.Handle("PATCH /api/transactions/{id}",  protected(http.HandlerFunc(txHandler.Update)))
-	mux.Handle("DELETE /api/transactions/{id}", protected(http.HandlerFunc(txHandler.Delete)))
+	mux.Handle("GET /api/transactions/summary",  protected(http.HandlerFunc(txHandler.Summary)))
+	mux.Handle("GET /api/transactions",          protected(http.HandlerFunc(txHandler.List)))
+	mux.Handle("POST /api/transactions",         protected(http.HandlerFunc(txHandler.Create)))
+	mux.Handle("PATCH /api/transactions/{id}",   protected(http.HandlerFunc(txHandler.Update)))
+	mux.Handle("DELETE /api/transactions/{id}",  protected(http.HandlerFunc(txHandler.Delete)))
 
-	mux.Handle("GET /api/recurring",      protected(http.HandlerFunc(recurringHandler.List)))
-	mux.Handle("POST /api/recurring",     protected(http.HandlerFunc(recurringHandler.Create)))
-	mux.Handle("PUT /api/recurring/{id}", protected(http.HandlerFunc(recurringHandler.Update)))
+	mux.Handle("GET /api/recurring",           protected(http.HandlerFunc(recurringHandler.List)))
+	mux.Handle("POST /api/recurring",          protected(http.HandlerFunc(recurringHandler.Create)))
+	mux.Handle("PUT /api/recurring/{id}",      protected(http.HandlerFunc(recurringHandler.Update)))
+	mux.Handle("DELETE /api/recurring/{id}",   protected(http.HandlerFunc(recurringHandler.Delete)))
 
 	mux.Handle("POST /api/chat", protected(http.HandlerFunc(chatHandler.Handle)))
 

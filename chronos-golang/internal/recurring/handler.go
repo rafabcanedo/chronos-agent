@@ -89,6 +89,23 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	respond.Created(w, bill)
 }
 
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	claims, ok := jwtauth.GetClaims(r)
+	if !ok {
+		respond.Error(w, errutil.Unauthorized("unauthorized"))
+		return
+	}
+
+	id := r.PathValue("id")
+
+	if err := h.svc.Delete(r.Context(), claims.Subject, id); err != nil {
+		respond.Error(w, err)
+		return
+	}
+
+	respond.OK(w, map[string]any{"message": "Conta recorrente removida com sucesso."})
+}
+
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	claims, ok := jwtauth.GetClaims(r)
 	if !ok {

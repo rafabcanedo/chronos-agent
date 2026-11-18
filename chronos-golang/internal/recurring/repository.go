@@ -106,6 +106,20 @@ func (r *repository) create(ctx context.Context, userID, name, category string, 
 	return scanRecurringBill(row)
 }
 
+func (r *repository) delete(ctx context.Context, userID, id string) error {
+	result, err := r.db.Exec(ctx, `
+		DELETE FROM recurring_bills
+		WHERE id = $1 AND user_id = $2
+	`, id, userID)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return errutil.NotFound("recurring bill not found")
+	}
+	return nil
+}
+
 func (r *repository) update(ctx context.Context, userID, id string, fields UpdateFields) (*RecurringBill, error) {
 	clauses := []string{}
 	args := []any{}

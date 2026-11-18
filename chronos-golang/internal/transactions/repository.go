@@ -50,6 +50,11 @@ type UpdateFields struct {
 	PaidAt      *string  `json:"paid_at"`
 }
 
+type StatusSummary struct {
+	Count int     `json:"count"`
+	Total float64 `json:"total"`
+}
+
 type scanner interface {
 	Scan(dest ...any) error
 }
@@ -91,6 +96,21 @@ func scanTransaction(s scanner) (Transaction, error) {
 	t.UpdatedAt = updatedAt.Format(time.RFC3339)
 
 	return t, nil
+}
+
+func (r *repository) create(ctx context.Context, userID, description, category string, amount float64, dueDate, paidAt *string, status string) (*Transaction, error) {
+	row := r.db.QueryRow(ctx, `
+		INSERT INTO transactions (user_id, description, amount, category, due_date, status, paid_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, recurring_bill_id, description, amount, category,
+		          due_date, status, paid_at, created_at, updated_at
+	`, userID, description, amount, category, dueDate, status, paidAt)
+
+	t, err := scanTransaction(row)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
 
 func (r *repository) generateMonthly(ctx context.Context, userID string) error {
@@ -270,6 +290,35 @@ func (r *repository) createExpense(ctx context.Context, userID, description, cat
 		VALUES ($1, $2, $3, $4, 'paid', $5::date)
 	`, userID, description, amount, category, paidAt)
 	return err
+}
+
+func (r *repository) summary(ctx context.Context, userID, month string) (map[string]StatusSummary, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT status, COUNT(*), COALESCE(SUM(amount), 0)
+		FROM transactions
+		WHERE user_id = $1
+		  AND DATE_TRUNC('month', COALESCE(due_date, paid_at)) = DATE_TRUNC('month', $2::date)
+		GROUP BY status
+	`, userID, month+"-01")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := map[string]StatusSummary{
+		StatusPending: {},
+		StatusPaid:    {},
+		StatusOverdue: {},
+	}
+	for rows.Next() {
+		var status string
+		var s StatusSummary
+		if err := rows.Scan(&status, &s.Count, &s.Total); err != nil {
+			return nil, err
+		}
+		result[status] = s
+	}
+	return result, rows.Err()
 }
 
 func (r *repository) queryMonthly(ctx context.Context, userID, month string) (map[string]float64, error) {
