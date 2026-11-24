@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { ArrowUpIcon } from 'lucide-react'
 import { useChatHistory } from '@/hooks/useChatHistory'
 import { ChatEmptyState } from '@/components/chronos/chat-empty-state'
+import { ChatHeader } from '@/components/chat/header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Bubble, BubbleContent } from '@/components/ui/bubble'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from '@/components/ui/input-group'
@@ -27,6 +28,7 @@ export default function Chat() {
       <div className="h-screen p-6">
         <Card className="w-full h-full shadow-md">
           <CardContent className="flex flex-col h-full p-0">
+            <ChatHeader />
             <div className="flex-1 min-h-0">
               {messages.length === 0 ? (
                 <ChatEmptyState />
