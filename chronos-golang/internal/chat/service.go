@@ -16,10 +16,25 @@ type Servicer interface {
 	Handle(ctx context.Context, userID, message string) (string, error)
 }
 
+type txServicer interface {
+	GenerateMonthly(ctx context.Context, userID string) error
+	FindAndMarkPaid(ctx context.Context, userID, description, date string) error
+	CreateExpense(ctx context.Context, userID, description, category, paidAt string, amount float64) error
+	QueryMonthly(ctx context.Context, userID, month string) (map[string]float64, error)
+}
+
+type recurringServicer interface {
+	Create(ctx context.Context, userID, name, category string, defaultAmount float64, billingDay int) (recurring.RecurringBill, error)
+}
+
+type llmClient interface {
+	Parse(ctx context.Context, userMessage, currentDate string) (llm.Action, error)
+}
+
 type Service struct {
-	txSvc        *transactions.Service
-	recurringSvc *recurring.Service
-	llm          *llm.Client
+	txSvc        txServicer
+	recurringSvc recurringServicer
+	llm          llmClient
 }
 
 func NewService(txSvc *transactions.Service, recurringSvc *recurring.Service, llmClient *llm.Client) *Service {
