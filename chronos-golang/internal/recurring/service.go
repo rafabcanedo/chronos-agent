@@ -14,8 +14,15 @@ type Servicer interface {
 	Delete(ctx context.Context, userID, id string) error
 }
 
+type repositorier interface {
+	list(ctx context.Context, userID string, active *bool, category, name string, p pagination.Params) ([]RecurringBill, int, error)
+	create(ctx context.Context, userID, name, category string, defaultAmount float64, billingDay int) (RecurringBill, error)
+	update(ctx context.Context, userID, id string, fields UpdateFields) (*RecurringBill, error)
+	delete(ctx context.Context, userID, id string) error
+}
+
 type Service struct {
-	repo *repository
+	repo repositorier
 }
 
 func NewService(db *pgxpool.Pool) *Service {
