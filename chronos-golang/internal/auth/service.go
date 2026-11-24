@@ -17,8 +17,15 @@ type Servicer interface {
 	Delete(ctx context.Context, userID string) error
 }
 
+type repositorier interface {
+	create(ctx context.Context, username, email, password string) (*User, error)
+	findByUsername(ctx context.Context, username string) (*User, error)
+	update(ctx context.Context, userID string, fields UpdateFields) (*User, error)
+	delete(ctx context.Context, userID string) error
+}
+
 type Service struct {
-	repo      *repository
+	repo      repositorier
 	jwtSecret string
 }
 

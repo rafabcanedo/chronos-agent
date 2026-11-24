@@ -16,8 +16,21 @@ type Servicer interface {
 	Delete(ctx context.Context, userID, id string) error
 }
 
+type repositorier interface {
+	create(ctx context.Context, userID, description, category string, amount float64, dueDate, paidAt *string, status string) (*Transaction, error)
+	list(ctx context.Context, userID, month, status, category string, p pagination.Params) ([]Transaction, int, error)
+	update(ctx context.Context, userID, id string, fields UpdateFields) (*Transaction, error)
+	delete(ctx context.Context, userID, id string) error
+	generateMonthly(ctx context.Context, userID string) error
+	markOverdue(ctx context.Context, userID string) error
+	findAndMarkPaid(ctx context.Context, userID, description, date string) error
+	createExpense(ctx context.Context, userID, description, category, paidAt string, amount float64) error
+	summary(ctx context.Context, userID, month string) (map[string]StatusSummary, error)
+	queryMonthly(ctx context.Context, userID, month string) (map[string]float64, error)
+}
+
 type Service struct {
-	repo *repository
+	repo repositorier
 }
 
 func NewService(db *pgxpool.Pool) *Service {
