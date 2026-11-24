@@ -104,6 +104,27 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	respond.OK(w, map[string]any{"message": "User deleted successfully."})
 }
 
+func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
+	claims, ok := jwtauth.GetClaims(r)
+	if !ok {
+		respond.Error(w, errutil.Unauthorized("unauthorized"))
+		return
+	}
+
+	user, err := h.svc.Me(r.Context(), claims.Subject)
+	if err != nil {
+		respond.Error(w, err)
+		return
+	}
+
+	respond.OK(w, map[string]any{
+		"id":         user.ID,
+		"username":   user.Username,
+		"email":      user.Email,
+		"created_at": user.CreatedAt,
+	})
+}
+
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var req loginRequest
 	if err := binding.JSON(r, &req); err != nil {

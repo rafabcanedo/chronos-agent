@@ -11,6 +11,7 @@ type MockAuthService struct {
 	LoginFn    func(ctx context.Context, username, password string) (string, error)
 	UpdateFn   func(ctx context.Context, userID string, fields auth.UpdateFields) (*auth.User, error)
 	DeleteFn   func(ctx context.Context, userID string) error
+	MeFn       func(ctx context.Context, userID string) (*auth.User, error)
 }
 
 func (m *MockAuthService) Register(ctx context.Context, username, email, password string) (*auth.User, error) {
@@ -27,4 +28,8 @@ func (m *MockAuthService) Update(ctx context.Context, userID string, fields auth
 
 func (m *MockAuthService) Delete(ctx context.Context, userID string) error {
 	return m.DeleteFn(ctx, userID)
+}
+
+func (m *MockAuthService) Me(ctx context.Context, userID string) (*auth.User, error) {
+	return m.MeFn(ctx, userID)
 }

@@ -143,6 +143,41 @@ func TestDelete_noAuth(t *testing.T) {
 	testutil.Equal(t, rec.Code, http.StatusUnauthorized)
 }
 
+func TestMe_success(t *testing.T) {
+	svc := &mocks.MockAuthService{
+		MeFn: func(_ context.Context, userID string) (*auth.User, error) {
+			return &auth.User{ID: userID, Username: "rafa", Email: "rafa@email.com", CreatedAt: "2024-01-01T00:00:00Z"}, nil
+		},
+	}
+	h := auth.NewHandler(svc)
+	req := itestutil.AuthedReq(http.MethodGet, "/api/auth/user", "")
+	rec := itestutil.CallWithAuth(h.Me, req)
+	testutil.Equal(t, rec.Code, http.StatusOK)
+	var body map[string]any
+	json.NewDecoder(rec.Body).Decode(&body)
+	data, _ := body["data"].(map[string]any)
+	testutil.Equal(t, data["username"], "rafa")
+}
+
+func TestMe_noAuth(t *testing.T) {
+	h := auth.NewHandler(&mocks.MockAuthService{})
+	req := httptest.NewRequest(http.MethodGet, "/api/auth/user", nil)
+	rec := itestutil.CallDirect(h.Me, req)
+	testutil.Equal(t, rec.Code, http.StatusUnauthorized)
+}
+
+func TestMe_notFound(t *testing.T) {
+	svc := &mocks.MockAuthService{
+		MeFn: func(_ context.Context, _ string) (*auth.User, error) {
+			return nil, errutil.NotFound("user not found")
+		},
+	}
+	h := auth.NewHandler(svc)
+	req := itestutil.AuthedReq(http.MethodGet, "/api/auth/user", "")
+	rec := itestutil.CallWithAuth(h.Me, req)
+	testutil.Equal(t, rec.Code, http.StatusNotFound)
+}
+
 func TestDelete_notFound(t *testing.T) {
 	svc := &mocks.MockAuthService{
 		DeleteFn: func(_ context.Context, _ string) error {

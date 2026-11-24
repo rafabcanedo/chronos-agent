@@ -123,3 +123,19 @@ func (r *repository) findByUsername(ctx context.Context, username string) (*User
 	u.CreatedAt = createdAt.Format(time.RFC3339)
 	return &u, nil
 }
+
+func (r *repository) findByID(ctx context.Context, userID string) (*User, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT id, username, email, password, created_at
+		FROM users
+		WHERE id = $1
+	`, userID)
+
+	var u User
+	var createdAt time.Time
+	if err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &createdAt); err != nil {
+		return nil, errutil.NotFound("user not found")
+	}
+	u.CreatedAt = createdAt.Format(time.RFC3339)
+	return &u, nil
+}

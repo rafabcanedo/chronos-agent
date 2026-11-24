@@ -12,6 +12,7 @@ import (
 type mockRepository struct {
 	createFn         func(ctx context.Context, username, email, password string) (*User, error)
 	findByUsernameFn func(ctx context.Context, username string) (*User, error)
+	findByIDFn       func(ctx context.Context, userID string) (*User, error)
 	updateFn         func(ctx context.Context, userID string, fields UpdateFields) (*User, error)
 	deleteFn         func(ctx context.Context, userID string) error
 }
@@ -22,6 +23,10 @@ func (m *mockRepository) create(ctx context.Context, username, email, password s
 
 func (m *mockRepository) findByUsername(ctx context.Context, username string) (*User, error) {
 	return m.findByUsernameFn(ctx, username)
+}
+
+func (m *mockRepository) findByID(ctx context.Context, userID string) (*User, error) {
+	return m.findByIDFn(ctx, userID)
 }
 
 func (m *mockRepository) update(ctx context.Context, userID string, fields UpdateFields) (*User, error) {
@@ -97,6 +102,18 @@ func TestUpdate_hashesPasswordWhenProvided(t *testing.T) {
 	_, err := svc.Update(context.Background(), "1", UpdateFields{Password: &plain})
 	testutil.NoError(t, err)
 	testutil.Equal(t, bcrypt.CompareHashAndPassword([]byte(stored), []byte("newpass")), nil)
+}
+
+func TestMe_returnsUser(t *testing.T) {
+	repo := &mockRepository{
+		findByIDFn: func(_ context.Context, userID string) (*User, error) {
+			return &User{ID: userID, Username: "rafa", Email: "rafa@test.com"}, nil
+		},
+	}
+	svc := &Service{repo: repo, jwtSecret: "secret"}
+	user, err := svc.Me(context.Background(), "user-123")
+	testutil.NoError(t, err)
+	testutil.Equal(t, user.ID, "user-123")
 }
 
 func TestUpdate_nilPasswordSkipsHash(t *testing.T) {

@@ -15,11 +15,13 @@ type Servicer interface {
 	Login(ctx context.Context, username, password string) (string, error)
 	Update(ctx context.Context, userID string, fields UpdateFields) (*User, error)
 	Delete(ctx context.Context, userID string) error
+	Me(ctx context.Context, userID string) (*User, error)
 }
 
 type repositorier interface {
 	create(ctx context.Context, username, email, password string) (*User, error)
 	findByUsername(ctx context.Context, username string) (*User, error)
+	findByID(ctx context.Context, userID string) (*User, error)
 	update(ctx context.Context, userID string, fields UpdateFields) (*User, error)
 	delete(ctx context.Context, userID string) error
 }
@@ -59,6 +61,10 @@ func (s *Service) Update(ctx context.Context, userID string, fields UpdateFields
 
 func (s *Service) Delete(ctx context.Context, userID string) error {
 	return s.repo.delete(ctx, userID)
+}
+
+func (s *Service) Me(ctx context.Context, userID string) (*User, error) {
+	return s.repo.findByID(ctx, userID)
 }
 
 func (s *Service) Login(ctx context.Context, username, password string) (string, error) {

@@ -66,6 +66,7 @@ func main() {
 	mux.Handle("GET /health", health.New().Handler())
 	mux.HandleFunc("POST /api/auth/user",    authHandler.Register)
 	mux.HandleFunc("POST /api/auth/login",   authHandler.Login)
+	mux.Handle("GET /api/auth/user",         protected(http.HandlerFunc(authHandler.Me)))
 	mux.Handle("PATCH /api/auth/user",       protected(http.HandlerFunc(authHandler.Update)))
 	mux.Handle("DELETE /api/auth/user",      protected(http.HandlerFunc(authHandler.Delete)))
 
