@@ -12,6 +12,10 @@ import (
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 )
 
+type Servicer interface {
+	Handle(ctx context.Context, userID, message string) (string, error)
+}
+
 type Service struct {
 	txSvc        *transactions.Service
 	recurringSvc *recurring.Service
