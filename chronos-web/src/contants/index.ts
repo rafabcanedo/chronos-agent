@@ -2,6 +2,7 @@ import { cva } from 'class-variance-authority'
 import { Category, TransactionStatus } from '@/enums'
 
 export const CHAT_STORAGE_KEY = '@chronos:chat-messages'
+export const TOKEN_STORAGE_KEY = '@chronos:token'
 
 export const statusVariants = cva('rounded-full px-2 py-0.5 text-xs font-medium', {
   variants: {

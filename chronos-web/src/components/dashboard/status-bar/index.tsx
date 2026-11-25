@@ -1,6 +1,6 @@
 import { cva } from 'class-variance-authority'
 import { cn } from 'cn'
-import { mockStatusSummary } from '@/mocks'
+import { useTransactionsSummary } from '@/hooks/useTransactions'
 import { STATUS_LABELS } from '@/contants'
 
 const statusPillVariants = cva(
@@ -17,7 +17,11 @@ const statusPillVariants = cva(
 )
 
 export function StatusBar() {
-  const { pending, paid, overdue } = mockStatusSummary
+  const { summary } = useTransactionsSummary()
+
+  const pending = summary?.pending ?? { count: 0, total: 0 }
+  const paid    = summary?.paid    ?? { count: 0, total: 0 }
+  const overdue = summary?.overdue ?? { count: 0, total: 0 }
 
   return (
     <div className="flex items-center gap-3">

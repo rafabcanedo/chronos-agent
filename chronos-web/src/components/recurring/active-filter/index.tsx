@@ -1,9 +1,10 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ACTIVE_FILTER_ITEMS } from '@/contants'
+import type { ActiveFilterProps } from '@/types'
 
-export function ActiveFilter() {
+export function ActiveFilter({ value, onChange }: ActiveFilterProps) {
   return (
-    <Select defaultValue="all" items={ACTIVE_FILTER_ITEMS}>
+    <Select value={value} onValueChange={(newValue) => onChange(newValue as 'true' | 'false' | 'all')}>
       <SelectTrigger className="w-32">
         <SelectValue />
       </SelectTrigger>

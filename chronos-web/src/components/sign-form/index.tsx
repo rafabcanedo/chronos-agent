@@ -1,6 +1,10 @@
+import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { login } from '@/services/auth'
+import { TOKEN_STORAGE_KEY } from '@/contants'
 import { TextInput } from '@/components/form/text-input'
 import { PasswordInput } from '@/components/form/password-input'
 import { Button } from '@/components/ui/button'
@@ -13,13 +17,23 @@ const schema = z.object({
 type SignInFormData = z.infer<typeof schema>
 
 export function SignInForm() {
+  const navigate = useNavigate()
   const methods = useForm<SignInFormData>({
     resolver: zodResolver(schema),
   })
 
-  const onSubmit = (data: SignInFormData) => {
-    console.log(data)
-  }
+  const { mutate, isPending } = useMutation({
+    mutationFn: login,
+    onSuccess: ({ token }) => {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token)
+      navigate('/dashboard')
+    },
+    onError: (error) => {
+      methods.setError('root', { message: error.message })
+    },
+  })
+
+  const onSubmit = (data: SignInFormData) => mutate(data)
 
   return (
     <FormProvider {...methods}>
@@ -35,8 +49,12 @@ export function SignInForm() {
         <TextInput name="username" title="Username" label="Your username" />
         <PasswordInput name="password" title="Password" label="Your password" />
 
-        <Button type="submit" className="w-full mt-2">
-          Login
+        {methods.formState.errors.root && (
+          <p className="text-xs text-destructive">{methods.formState.errors.root.message}</p>
+        )}
+
+        <Button type="submit" className="w-full mt-2" disabled={isPending}>
+          {isPending ? 'Signing in...' : 'Login'}
         </Button>
       </form>
     </FormProvider>

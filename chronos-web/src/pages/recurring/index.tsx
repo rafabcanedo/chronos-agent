@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { cn } from 'cn'
 import { PencilIcon, Trash2Icon } from 'lucide-react'
-import { mockRecurringBills } from '@/mocks'
 import { CATEGORY_LABELS } from '@/contants'
+import { useRecurringBills } from '@/hooks/useRecurringBills'
 import { Navbar } from '@/components/dashboard/navbar'
 import { AppPagination } from '@/components/chronos/pagination'
 import { DetailDrawer } from '@/components/chronos/detail-drawer'
@@ -17,7 +17,19 @@ import { Button } from '@/components/ui/button'
 import type { RecurringBill } from '@/types'
 
 export default function Recurring() {
-  const [selected, setSelected] = useState<RecurringBill | null>(null)
+  const [selected, setSelected]           = useState<RecurringBill | null>(null)
+  const [activeFilter, setActiveFilter]   = useState<'true' | 'false' | 'all'>('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [nameSearch, setNameSearch]       = useState('')
+  const [page, setPage]                   = useState(1)
+
+  const { bills, meta, isLoading } = useRecurringBills({
+    active:    activeFilter,
+    category:  categoryFilter,
+    name:      nameSearch,
+    page,
+    page_size: 10,
+  })
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -25,12 +37,12 @@ export default function Recurring() {
       <main className="flex-1 flex flex-col gap-4 p-6">
         <h1 className="text-xl font-heading font-semibold">Recurring Bills</h1>
 
-        <RecurringStats />
+        <RecurringStats bills={bills} />
 
         <div className="flex gap-2">
-          <BillSearch />
-          <CategoryFilter />
-          <ActiveFilter />
+          <BillSearch value={nameSearch} onChange={setNameSearch} />
+          <CategoryFilter value={categoryFilter} onChange={setCategoryFilter} />
+          <ActiveFilter value={activeFilter} onChange={setActiveFilter} />
         </div>
 
         <div className="flex flex-col gap-4">
@@ -46,7 +58,13 @@ export default function Recurring() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockRecurringBills.map(bill => (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : bills.map(bill => (
                   <TableRow
                     key={bill.id}
                     className={cn('cursor-pointer group', selected?.id === bill.id && 'bg-muted')}
@@ -79,7 +97,8 @@ export default function Recurring() {
               </TableBody>
             </Table>
           </div>
-          <AppPagination />
+
+          {meta && <AppPagination meta={meta} onPageChange={setPage} />}
         </div>
 
         <DetailDrawer

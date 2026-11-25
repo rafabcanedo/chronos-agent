@@ -93,3 +93,90 @@ export interface TransactionFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
+
+// Auth
+export interface LoginPayload {
+  username: string
+  password: string
+}
+
+export interface LoginResponse {
+  token: string
+}
+
+// Pagination
+export interface PaginationMeta {
+  total: number
+  total_pages: number
+  current_page: number
+  page_size: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  meta: PaginationMeta
+}
+
+export interface AppPaginationProps {
+  meta: PaginationMeta
+  onPageChange: (page: number) => void
+}
+
+// Service params
+export interface GetRecurringParams {
+  active?: 'true' | 'false' | 'all'
+  category?: string
+  name?: string
+  page?: number
+  page_size?: number
+}
+
+export interface GetTransactionsParams {
+  month?: string
+  status?: string
+  category?: string
+  page?: number
+  page_size?: number
+}
+
+// Summary
+export interface TransactionStatusSummaryItem {
+  count: number
+  total: number
+}
+
+export interface TransactionsSummary {
+  pending: TransactionStatusSummaryItem
+  paid: TransactionStatusSummaryItem
+  overdue: TransactionStatusSummaryItem
+}
+
+// Filter component props
+export interface StatusFilterProps {
+  value: string
+  onChange: (value: string) => void
+}
+
+export interface CategoryFilterProps {
+  value: string
+  onChange: (value: string) => void
+}
+
+export interface ActiveFilterProps {
+  value: 'true' | 'false' | 'all'
+  onChange: (value: 'true' | 'false' | 'all') => void
+}
+
+export interface BillSearchProps {
+  value: string
+  onChange: (value: string) => void
+}
+
+export interface MonthSelectorProps {
+  value: string
+  onChange: (value: string) => void
+}
+
+export interface RecurringStatsProps {
+  bills: RecurringBill[]
+}

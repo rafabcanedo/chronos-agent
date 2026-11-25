@@ -1,3 +1,4 @@
+import { cn } from 'cn'
 import {
   Pagination,
   PaginationContent,
@@ -7,16 +8,45 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import type { AppPaginationProps } from '@/types'
 
-export function AppPagination() {
+export function AppPagination({ meta, onPageChange }: AppPaginationProps) {
+  const { current_page, total_pages } = meta
+
+  const isFirst = current_page <= 1
+  const isLast  = current_page >= total_pages
+
   return (
     <Pagination>
       <PaginationContent>
-        <PaginationItem><PaginationPrevious href="#" /></PaginationItem>
-        <PaginationItem><PaginationLink href="#" isActive>1</PaginationLink></PaginationItem>
-        <PaginationItem><PaginationLink href="#">2</PaginationLink></PaginationItem>
-        <PaginationItem><PaginationEllipsis /></PaginationItem>
-        <PaginationItem><PaginationNext href="#" /></PaginationItem>
+        <PaginationItem>
+          <PaginationPrevious
+            onClick={() => !isFirst && onPageChange(current_page - 1)}
+            className={cn(isFirst && 'pointer-events-none opacity-50')}
+          />
+        </PaginationItem>
+
+        <PaginationItem>
+          <PaginationLink isActive>{current_page}</PaginationLink>
+        </PaginationItem>
+
+        {total_pages > 1 && current_page < total_pages && (
+          <>
+            <PaginationItem><PaginationEllipsis /></PaginationItem>
+            <PaginationItem>
+              <PaginationLink onClick={() => onPageChange(total_pages)}>
+                {total_pages}
+              </PaginationLink>
+            </PaginationItem>
+          </>
+        )}
+
+        <PaginationItem>
+          <PaginationNext
+            onClick={() => !isLast && onPageChange(current_page + 1)}
+            className={cn(isLast && 'pointer-events-none opacity-50')}
+          />
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   )

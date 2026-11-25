@@ -1,9 +1,10 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { STATUS_FILTER_ITEMS } from '@/contants'
+import type { StatusFilterProps } from '@/types'
 
-export function StatusFilter() {
+export function StatusFilter({ value, onChange }: StatusFilterProps) {
   return (
-    <Select defaultValue="all" items={STATUS_FILTER_ITEMS}>
+    <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-36">
         <SelectValue />
       </SelectTrigger>
