@@ -39,7 +39,7 @@ export interface ApiError {
   error: string
 }
 
-export interface ITextInput {
+export interface TextInputProps {
   name: string
   type?: string
   label?: string

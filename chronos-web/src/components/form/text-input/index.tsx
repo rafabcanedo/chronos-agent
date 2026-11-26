@@ -1,15 +1,8 @@
-import { FC } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
-import type { ITextInput } from '@/types'
+import type { TextInputProps } from '@/types'
 
-export const TextInput: FC<ITextInput> = ({
-  name,
-  type = 'text',
-  label,
-  title,
-  disabled,
-}) => {
+export function TextInput({ name, type = 'text', label, title, disabled }: TextInputProps) {
   const { register, formState: { errors } } = useFormContext()
 
   return (

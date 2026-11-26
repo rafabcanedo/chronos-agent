@@ -31,7 +31,7 @@ export default function Profile() {
               <AvatarFallback className="text-2xl">{getInitials(GITHUB_USERNAME)}</AvatarFallback>
             </Avatar>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 max-w-sm">
               <h2 className="text-sm font-semibold">Profile details</h2>
 
               <div className="flex flex-col gap-1.5">
