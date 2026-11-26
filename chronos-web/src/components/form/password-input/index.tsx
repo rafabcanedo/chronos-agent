@@ -1,15 +1,10 @@
-import { FC, useState } from 'react'
+import { useState } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { Eye, EyeOff } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import type { ITextInput } from '@/types'
+import type { TextInputProps } from '@/types'
 
-export const PasswordInput: FC<Omit<ITextInput, 'type'>> = ({
-  name,
-  label,
-  title,
-  disabled,
-}) => {
+export function PasswordInput({ name, label, title, disabled }: Omit<TextInputProps, 'type'>) {
   const [visible, setVisible] = useState(false)
   const { register, formState: { errors } } = useFormContext()
 

@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { ThemeProvider } from '@/contexts/theme'
 import About from './pages/about'
 import Chat from './pages/chat'
 import Dashboard from './pages/dashboard'
@@ -10,6 +11,7 @@ import Transactions from './pages/transactions'
 
 function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route index element={<Home />} />
@@ -22,6 +24,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

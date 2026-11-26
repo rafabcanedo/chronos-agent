@@ -1,29 +1,21 @@
 import { useState } from 'react'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { GITHUB_USERNAME } from '@/contants'
+import { useTheme } from '@/hooks/useTheme'
 import { Navbar } from '@/components/dashboard/navbar'
+import { DeleteAccountDialog } from '@/components/profile/delete-account-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 
 function getInitials(username: string): string {
   return username.slice(0, 2).toUpperCase()
 }
 
 export default function Profile() {
-  const [isDark, setIsDark] = useState(false)
+  const { theme, toggleTheme } = useTheme()
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -40,7 +32,7 @@ export default function Profile() {
               <AvatarFallback className="text-2xl">{getInitials(GITHUB_USERNAME)}</AvatarFallback>
             </Avatar>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 max-w-sm">
               <h2 className="text-sm font-semibold">Profile details</h2>
 
               <div className="flex flex-col gap-1.5">
@@ -61,26 +53,7 @@ export default function Profile() {
 
             <div className="flex gap-2">
               <Button>Save</Button>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Delete</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete account</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. Your account and all associated data will be permanently deleted.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button variant="destructive" onClick={() => setDeleteOpen(true)}>Delete</Button>
             </div>
           </div>
 
@@ -91,18 +64,19 @@ export default function Profile() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setIsDark(prev => !prev)}
+                onClick={toggleTheme}
               >
-                {isDark ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
+                {theme === 'dark' ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
               </Button>
               <span className="text-sm text-muted-foreground">
-                {isDark ? 'Light mode' : 'Dark mode'}
+                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
               </span>
             </div>
           </div>
 
         </div>
       </main>
+    <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
     </div>
   )
 }

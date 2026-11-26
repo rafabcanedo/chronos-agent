@@ -62,8 +62,8 @@ export function Navbar() {
             <DropdownMenuItem onClick={() => setTransactionFormOpen(true)}><PlusIcon /> Create transaction</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setBillFormOpen(true)}><PlusIcon /> Create bill</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/profile"><UserIcon /> View profile</Link>
+            <DropdownMenuItem render={<Link to="/profile" />}>
+              <UserIcon /> View profile
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
