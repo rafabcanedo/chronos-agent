@@ -4,17 +4,21 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/rafabcanedo/obsidian-golang-toolkit/testutil"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type mockRepository struct {
-	createFn         func(ctx context.Context, username, email, password string) (*User, error)
-	findByUsernameFn func(ctx context.Context, username string) (*User, error)
-	findByIDFn       func(ctx context.Context, userID string) (*User, error)
-	updateFn         func(ctx context.Context, userID string, fields UpdateFields) (*User, error)
-	deleteFn         func(ctx context.Context, userID string) error
+	createFn                  func(ctx context.Context, username, email, password string) (*User, error)
+	findByUsernameFn          func(ctx context.Context, username string) (*User, error)
+	findByIDFn                func(ctx context.Context, userID string) (*User, error)
+	updateFn                  func(ctx context.Context, userID string, fields UpdateFields) (*User, error)
+	deleteFn                  func(ctx context.Context, userID string) error
+	saveRefreshTokenFn        func(ctx context.Context, userID, tokenHash string, expiresAt time.Time) error
+	findRefreshTokenByHashFn  func(ctx context.Context, hash string) (*RefreshToken, error)
+	deleteRefreshTokenByHashFn func(ctx context.Context, hash string) error
 }
 
 func (m *mockRepository) create(ctx context.Context, username, email, password string) (*User, error) {
@@ -35,6 +39,24 @@ func (m *mockRepository) update(ctx context.Context, userID string, fields Updat
 
 func (m *mockRepository) delete(ctx context.Context, userID string) error {
 	return m.deleteFn(ctx, userID)
+}
+
+func (m *mockRepository) saveRefreshToken(ctx context.Context, userID, tokenHash string, expiresAt time.Time) error {
+	if m.saveRefreshTokenFn != nil {
+		return m.saveRefreshTokenFn(ctx, userID, tokenHash, expiresAt)
+	}
+	return nil
+}
+
+func (m *mockRepository) findRefreshTokenByHash(ctx context.Context, hash string) (*RefreshToken, error) {
+	return m.findRefreshTokenByHashFn(ctx, hash)
+}
+
+func (m *mockRepository) deleteRefreshTokenByHash(ctx context.Context, hash string) error {
+	if m.deleteRefreshTokenByHashFn != nil {
+		return m.deleteRefreshTokenByHashFn(ctx, hash)
+	}
+	return nil
 }
 
 func TestRegister_hashesPassword(t *testing.T) {
@@ -58,7 +80,7 @@ func TestLogin_userNotFound_returnsUnauthorized(t *testing.T) {
 		},
 	}
 	svc := &Service{repo: repo, jwtSecret: "secret"}
-	_, err := svc.Login(context.Background(), "john", "any")
+	_, _, err := svc.Login(context.Background(), "john", "any")
 	testutil.Error(t, err)
 }
 
@@ -70,11 +92,11 @@ func TestLogin_wrongPassword_returnsUnauthorized(t *testing.T) {
 		},
 	}
 	svc := &Service{repo: repo, jwtSecret: "secret"}
-	_, err := svc.Login(context.Background(), "john", "wrong")
+	_, _, err := svc.Login(context.Background(), "john", "wrong")
 	testutil.Error(t, err)
 }
 
-func TestLogin_correctPassword_returnsToken(t *testing.T) {
+func TestLogin_correctPassword_returnsTokens(t *testing.T) {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("correct"), bcrypt.DefaultCost)
 	repo := &mockRepository{
 		findByUsernameFn: func(_ context.Context, _ string) (*User, error) {
@@ -82,10 +104,52 @@ func TestLogin_correctPassword_returnsToken(t *testing.T) {
 		},
 	}
 	svc := &Service{repo: repo, jwtSecret: "secret"}
-	token, err := svc.Login(context.Background(), "john", "correct")
+	accessToken, refreshToken, err := svc.Login(context.Background(), "john", "correct")
 	testutil.NoError(t, err)
-	if token == "" {
-		t.Fatal("expected token, got empty string")
+	if accessToken == "" {
+		t.Fatal("expected access token, got empty string")
+	}
+	if refreshToken == "" {
+		t.Fatal("expected refresh token, got empty string")
+	}
+}
+
+func TestRefresh_invalidToken_returnsUnauthorized(t *testing.T) {
+	repo := &mockRepository{
+		findRefreshTokenByHashFn: func(_ context.Context, _ string) (*RefreshToken, error) {
+			return nil, errors.New("not found")
+		},
+	}
+	svc := &Service{repo: repo, jwtSecret: "secret"}
+	_, _, err := svc.Refresh(context.Background(), "invalid-token")
+	testutil.Error(t, err)
+}
+
+func TestRefresh_expiredToken_returnsUnauthorized(t *testing.T) {
+	repo := &mockRepository{
+		findRefreshTokenByHashFn: func(_ context.Context, _ string) (*RefreshToken, error) {
+			return &RefreshToken{UserID: "1", ExpiresAt: time.Now().Add(-1 * time.Hour)}, nil
+		},
+	}
+	svc := &Service{repo: repo, jwtSecret: "secret"}
+	_, _, err := svc.Refresh(context.Background(), "expired-token")
+	testutil.Error(t, err)
+}
+
+func TestRefresh_validToken_returnsNewTokens(t *testing.T) {
+	repo := &mockRepository{
+		findRefreshTokenByHashFn: func(_ context.Context, _ string) (*RefreshToken, error) {
+			return &RefreshToken{UserID: "1", ExpiresAt: time.Now().Add(1 * time.Hour)}, nil
+		},
+	}
+	svc := &Service{repo: repo, jwtSecret: "secret"}
+	newAccessToken, newRefreshToken, err := svc.Refresh(context.Background(), "valid-token")
+	testutil.NoError(t, err)
+	if newAccessToken == "" {
+		t.Fatal("expected new access token, got empty string")
+	}
+	if newRefreshToken == "" {
+		t.Fatal("expected new refresh token, got empty string")
 	}
 }
 

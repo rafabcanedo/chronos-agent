@@ -4,15 +4,17 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Servicer interface {
 	Register(ctx context.Context, username, email, password string) (*User, error)
-	Login(ctx context.Context, username, password string) (string, error)
+	Login(ctx context.Context, username, password string) (accessToken, refreshToken string, err error)
+	Refresh(ctx context.Context, refreshToken string) (newAccessToken, newRefreshToken string, err error)
+	Logout(ctx context.Context, refreshToken string) error
 	Update(ctx context.Context, userID string, fields UpdateFields) (*User, error)
 	Delete(ctx context.Context, userID string) error
 	Me(ctx context.Context, userID string) (*User, error)
@@ -24,6 +26,9 @@ type repositorier interface {
 	findByID(ctx context.Context, userID string) (*User, error)
 	update(ctx context.Context, userID string, fields UpdateFields) (*User, error)
 	delete(ctx context.Context, userID string) error
+	saveRefreshToken(ctx context.Context, userID, tokenHash string, expiresAt time.Time) error
+	findRefreshTokenByHash(ctx context.Context, hash string) (*RefreshToken, error)
+	deleteRefreshTokenByHash(ctx context.Context, hash string) error
 }
 
 type Service struct {
@@ -43,8 +48,80 @@ func (s *Service) Register(ctx context.Context, username, email, password string
 	if err != nil {
 		return nil, err
 	}
-
 	return s.repo.create(ctx, username, email, string(hash))
+}
+
+func (s *Service) Login(ctx context.Context, username, password string) (accessToken, refreshToken string, err error) {
+	user, err := s.repo.findByUsername(ctx, username)
+	if err != nil {
+		return "", "", errutil.Unauthorized("invalid credentials")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return "", "", errutil.Unauthorized("invalid credentials")
+	}
+
+	accessToken, err = jwtauth.Generate(s.jwtSecret, jwtauth.Claims{
+		Subject: user.ID,
+		Expiry:  time.Now().Add(30 * time.Minute),
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err = generateRefreshToken()
+	if err != nil {
+		return "", "", err
+	}
+
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	if err := s.repo.saveRefreshToken(ctx, user.ID, hashToken(refreshToken), expiresAt); err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
+func (s *Service) Refresh(ctx context.Context, refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+	hash := hashToken(refreshToken)
+
+	stored, err := s.repo.findRefreshTokenByHash(ctx, hash)
+	if err != nil {
+		return "", "", err
+	}
+
+	if time.Now().After(stored.ExpiresAt) {
+		s.repo.deleteRefreshTokenByHash(ctx, hash)
+		return "", "", errutil.Unauthorized("refresh token expired")
+	}
+
+	if err := s.repo.deleteRefreshTokenByHash(ctx, hash); err != nil {
+		return "", "", err
+	}
+
+	newAccessToken, err = jwtauth.Generate(s.jwtSecret, jwtauth.Claims{
+		Subject: stored.UserID,
+		Expiry:  time.Now().Add(30 * time.Minute),
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	newRefreshToken, err = generateRefreshToken()
+	if err != nil {
+		return "", "", err
+	}
+
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	if err := s.repo.saveRefreshToken(ctx, stored.UserID, hashToken(newRefreshToken), expiresAt); err != nil {
+		return "", "", err
+	}
+
+	return newAccessToken, newRefreshToken, nil
+}
+
+func (s *Service) Logout(ctx context.Context, refreshToken string) error {
+	return s.repo.deleteRefreshTokenByHash(ctx, hashToken(refreshToken))
 }
 
 func (s *Service) Update(ctx context.Context, userID string, fields UpdateFields) (*User, error) {
@@ -65,25 +142,4 @@ func (s *Service) Delete(ctx context.Context, userID string) error {
 
 func (s *Service) Me(ctx context.Context, userID string) (*User, error) {
 	return s.repo.findByID(ctx, userID)
-}
-
-func (s *Service) Login(ctx context.Context, username, password string) (string, error) {
-	user, err := s.repo.findByUsername(ctx, username)
-	if err != nil {
-		return "", errutil.Unauthorized("invalid credentials")
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", errutil.Unauthorized("invalid credentials")
-	}
-
-	token, err := jwtauth.Generate(s.jwtSecret, jwtauth.Claims{
-		Subject: user.ID,
-		Expiry:  time.Now().Add(30 * 24 * time.Hour),
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
 }

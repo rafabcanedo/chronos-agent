@@ -26,6 +26,13 @@ type User struct {
 	CreatedAt string
 }
 
+type RefreshToken struct {
+	ID        string
+	UserID    string
+	TokenHash string
+	ExpiresAt time.Time
+}
+
 type repository struct {
 	db *pgxpool.Pool
 }
@@ -138,4 +145,34 @@ func (r *repository) findByID(ctx context.Context, userID string) (*User, error)
 	}
 	u.CreatedAt = createdAt.Format(time.RFC3339)
 	return &u, nil
+}
+
+func (r *repository) saveRefreshToken(ctx context.Context, userID, tokenHash string, expiresAt time.Time) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+		VALUES ($1, $2, $3)
+	`, userID, tokenHash, expiresAt)
+	return err
+}
+
+func (r *repository) findRefreshTokenByHash(ctx context.Context, hash string) (*RefreshToken, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT id, user_id, token_hash, expires_at
+		FROM refresh_tokens
+		WHERE token_hash = $1
+	`, hash)
+
+	var rt RefreshToken
+	if err := row.Scan(&rt.ID, &rt.UserID, &rt.TokenHash, &rt.ExpiresAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errutil.Unauthorized("invalid refresh token")
+		}
+		return nil, err
+	}
+	return &rt, nil
+}
+
+func (r *repository) deleteRefreshTokenByHash(ctx context.Context, hash string) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM refresh_tokens WHERE token_hash = $1`, hash)
+	return err
 }

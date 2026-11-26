@@ -50,8 +50,8 @@ func TestRegister_missingField(t *testing.T) {
 
 func TestLogin_success(t *testing.T) {
 	svc := &mocks.MockAuthService{
-		LoginFn: func(_ context.Context, _, _ string) (string, error) {
-			return "jwt-token-here", nil
+		LoginFn: func(_ context.Context, _, _ string) (string, string, error) {
+			return "jwt-token-here", "refresh-token-here", nil
 		},
 	}
 	h := auth.NewHandler(svc)
@@ -84,8 +84,8 @@ func TestLogin_missingField(t *testing.T) {
 
 func TestLogin_unauthorized(t *testing.T) {
 	svc := &mocks.MockAuthService{
-		LoginFn: func(_ context.Context, _, _ string) (string, error) {
-			return "", errutil.Unauthorized("invalid credentials")
+		LoginFn: func(_ context.Context, _, _ string) (string, string, error) {
+			return "", "", errutil.Unauthorized("invalid credentials")
 		},
 	}
 	h := auth.NewHandler(svc)

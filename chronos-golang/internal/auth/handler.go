@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/binding"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/api/jwtauth"
@@ -9,6 +10,8 @@ import (
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/errutil"
 	"github.com/rafabcanedo/obsidian-golang-toolkit/validator"
 )
+
+const refreshTokenCookie = "refresh_token"
 
 type Handler struct {
 	svc Servicer
@@ -62,6 +65,82 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	var req loginRequest
+	if err := binding.JSON(r, &req); err != nil {
+		respond.Error(w, errutil.BadRequest(err.Error()))
+		return
+	}
+
+	if errs := validator.New().
+		Required("username", req.Username).
+		Required("password", req.Password).
+		Validate(); errs != nil {
+		respond.Error(w, errutil.BadRequest(errs.Error()))
+		return
+	}
+
+	accessToken, refreshToken, err := h.svc.Login(r.Context(), req.Username, req.Password)
+	if err != nil {
+		respond.Error(w, err)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     refreshTokenCookie,
+		Value:    refreshToken,
+		Path:     "/api/auth/refresh",
+		HttpOnly: true,
+		Secure:   os.Getenv("APP_ENV") == "production",
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   7 * 24 * 60 * 60,
+	})
+
+	respond.OK(w, map[string]any{"token": accessToken})
+}
+
+func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(refreshTokenCookie)
+	if err != nil {
+		respond.Error(w, errutil.Unauthorized("missing refresh token"))
+		return
+	}
+
+	newAccessToken, newRefreshToken, err := h.svc.Refresh(r.Context(), cookie.Value)
+	if err != nil {
+		respond.Error(w, err)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     refreshTokenCookie,
+		Value:    newRefreshToken,
+		Path:     "/api/auth/refresh",
+		HttpOnly: true,
+		Secure:   os.Getenv("APP_ENV") == "production",
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   7 * 24 * 60 * 60,
+	})
+
+	respond.OK(w, map[string]any{"token": newAccessToken})
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(refreshTokenCookie)
+	if err == nil {
+		h.svc.Logout(r.Context(), cookie.Value)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     refreshTokenCookie,
+		Path:     "/api/auth/refresh",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+
+	respond.OK(w, map[string]any{"message": "logged out successfully"})
+}
+
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	claims, ok := jwtauth.GetClaims(r)
 	if !ok {
@@ -101,6 +180,13 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     refreshTokenCookie,
+		Path:     "/api/auth/refresh",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+
 	respond.OK(w, map[string]any{"message": "User deleted successfully."})
 }
 
@@ -123,28 +209,4 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		"email":      user.Email,
 		"created_at": user.CreatedAt,
 	})
-}
-
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var req loginRequest
-	if err := binding.JSON(r, &req); err != nil {
-		respond.Error(w, errutil.BadRequest(err.Error()))
-		return
-	}
-
-	if errs := validator.New().
-		Required("username", req.Username).
-		Required("password", req.Password).
-		Validate(); errs != nil {
-		respond.Error(w, errutil.BadRequest(errs.Error()))
-		return
-	}
-
-	token, err := h.svc.Login(r.Context(), req.Username, req.Password)
-	if err != nil {
-		respond.Error(w, err)
-		return
-	}
-
-	respond.OK(w, map[string]any{"token": token})
 }

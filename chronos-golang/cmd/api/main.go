@@ -20,6 +20,13 @@ import (
 	"github.com/rafabcanedo/obsidian-golang-toolkit/util/logutil"
 )
 
+func allowCredentials(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	if vars, err := config.LoadEnv(".env"); err == nil {
 		for k, v := range vars {
@@ -33,6 +40,7 @@ func main() {
 	jwtSecret   := env.GetString("JWT_SECRET", "")
 	abacusKey   := env.GetString("ABACUS_API_KEY", "")
 	abacusModel := env.GetString("ABACUS_MODEL", "gpt-4o-mini")
+	frontendURL := env.GetString("FRONTEND_URL", "http://localhost:5173")
 
 	logger := logutil.NewLogger(appEnv)
 
@@ -52,7 +60,7 @@ func main() {
 	txSvc     := transactions.NewService(db)
 	txHandler := transactions.NewHandler(txSvc)
 
-	recurringSvc    := recurring.NewService(db)
+	recurringSvc     := recurring.NewService(db)
 	recurringHandler := recurring.NewHandler(recurringSvc)
 
 	llmClient  := llm.NewClient(abacusKey, abacusModel)
@@ -64,11 +72,13 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /health", health.New().Handler())
-	mux.HandleFunc("POST /api/auth/user",    authHandler.Register)
-	mux.HandleFunc("POST /api/auth/login",   authHandler.Login)
-	mux.Handle("GET /api/auth/user",         protected(http.HandlerFunc(authHandler.Me)))
-	mux.Handle("PATCH /api/auth/user",       protected(http.HandlerFunc(authHandler.Update)))
-	mux.Handle("DELETE /api/auth/user",      protected(http.HandlerFunc(authHandler.Delete)))
+	mux.HandleFunc("POST /api/auth/user",      authHandler.Register)
+	mux.HandleFunc("POST /api/auth/login",     authHandler.Login)
+	mux.HandleFunc("POST /api/auth/refresh",   authHandler.Refresh)
+	mux.Handle("POST /api/auth/logout",        protected(http.HandlerFunc(authHandler.Logout)))
+	mux.Handle("GET /api/auth/user",           protected(http.HandlerFunc(authHandler.Me)))
+	mux.Handle("PATCH /api/auth/user",         protected(http.HandlerFunc(authHandler.Update)))
+	mux.Handle("DELETE /api/auth/user",        protected(http.HandlerFunc(authHandler.Delete)))
 
 	mux.Handle("GET /api/transactions/summary",  protected(http.HandlerFunc(txHandler.Summary)))
 	mux.Handle("GET /api/transactions",          protected(http.HandlerFunc(txHandler.List)))
@@ -84,7 +94,7 @@ func main() {
 	mux.Handle("POST /api/chat", protected(http.HandlerFunc(chatHandler.Handle)))
 
 	cors := middleware.CORS(middleware.CORSOptions{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins: []string{frontendURL},
 		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowedHeaders: []string{"Content-Type", "Authorization"},
 	})
@@ -92,7 +102,9 @@ func main() {
 	handler := middleware.Logger(
 		middleware.Recovery(
 			middleware.RequestID(
-				cors(mux),
+				allowCredentials(
+					cors(mux),
+				),
 			),
 		),
 	)
