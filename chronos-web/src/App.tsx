@@ -3,6 +3,7 @@ import About from './pages/about'
 import Chat from './pages/chat'
 import Dashboard from './pages/dashboard'
 import Home from './pages/home'
+import Profile from './pages/profile'
 import Recurring from './pages/recurring'
 import SignIn from './pages/signin'
 import Transactions from './pages/transactions'
@@ -18,6 +19,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/recurring" element={<Recurring />} />
         <Route path="/transactions" element={<Transactions />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   )

@@ -58,3 +58,5 @@ export const ACTIVE_FILTER_ITEMS = [
   { value: 'true',  label: 'Active' },
   { value: 'false', label: 'Inactive' },
 ]
+
+export const GITHUB_USERNAME = 'rafacanedo'
