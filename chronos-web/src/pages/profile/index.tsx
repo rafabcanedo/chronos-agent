@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { GITHUB_USERNAME } from '@/contants'
+import { useTheme } from '@/hooks/useTheme'
 import { Navbar } from '@/components/dashboard/navbar'
 import { DeleteAccountDialog } from '@/components/profile/delete-account-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -13,7 +14,7 @@ function getInitials(username: string): string {
 }
 
 export default function Profile() {
-  const [isDark, setIsDark] = useState(false)
+  const { theme, toggleTheme } = useTheme()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
@@ -63,12 +64,12 @@ export default function Profile() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setIsDark(prev => !prev)}
+                onClick={toggleTheme}
               >
-                {isDark ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
+                {theme === 'dark' ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
               </Button>
               <span className="text-sm text-muted-foreground">
-                {isDark ? 'Light mode' : 'Dark mode'}
+                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
               </span>
             </div>
           </div>

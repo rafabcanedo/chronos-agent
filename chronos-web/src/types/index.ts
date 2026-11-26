@@ -99,6 +99,13 @@ export interface DeleteAccountDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+export type Theme = 'light' | 'dark'
+
+export interface ThemeContextValue {
+  theme: Theme
+  setTheme: (theme: Theme) => void
+}
+
 export interface LoginPayload {
   username: string
   password: string
