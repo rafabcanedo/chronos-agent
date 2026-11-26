@@ -94,7 +94,11 @@ export interface TransactionFormDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-// Auth
+export interface DeleteAccountDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
 export interface LoginPayload {
   username: string
   password: string
@@ -104,7 +108,6 @@ export interface LoginResponse {
   token: string
 }
 
-// Pagination
 export interface PaginationMeta {
   total: number
   total_pages: number
@@ -122,7 +125,6 @@ export interface AppPaginationProps {
   onPageChange: (page: number) => void
 }
 
-// Service params
 export interface GetRecurringParams {
   active?: 'true' | 'false' | 'all'
   category?: string
@@ -139,7 +141,6 @@ export interface GetTransactionsParams {
   page_size?: number
 }
 
-// Summary
 export interface TransactionStatusSummaryItem {
   count: number
   total: number
@@ -151,7 +152,6 @@ export interface TransactionsSummary {
   overdue: TransactionStatusSummaryItem
 }
 
-// Filter component props
 export interface StatusFilterProps {
   value: string
   onChange: (value: string) => void

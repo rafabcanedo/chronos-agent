@@ -2,21 +2,11 @@ import { useState } from 'react'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { GITHUB_USERNAME } from '@/contants'
 import { Navbar } from '@/components/dashboard/navbar'
+import { DeleteAccountDialog } from '@/components/profile/delete-account-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 
 function getInitials(username: string): string {
   return username.slice(0, 2).toUpperCase()
@@ -24,6 +14,7 @@ function getInitials(username: string): string {
 
 export default function Profile() {
   const [isDark, setIsDark] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -61,26 +52,7 @@ export default function Profile() {
 
             <div className="flex gap-2">
               <Button>Save</Button>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Delete</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete account</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. Your account and all associated data will be permanently deleted.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button variant="destructive" onClick={() => setDeleteOpen(true)}>Delete</Button>
             </div>
           </div>
 
@@ -103,6 +75,7 @@ export default function Profile() {
 
         </div>
       </main>
+    <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
     </div>
   )
 }
